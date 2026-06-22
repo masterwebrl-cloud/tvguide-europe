@@ -2,17 +2,12 @@ import type { Context, Config } from "@netlify/functions";
 import { gunzipSync } from "node:zlib";
 import { XMLParser } from "fast-xml-parser";
 
-// --- Sources XMLTV (gzip), MAJ quotidienne ---
 const SOURCES: Record<string, { name: string; flag: string; urls: string[] }> = {
   FR: { name: "France", flag: "🇫🇷", urls: ["https://epgshare01.online/epgshare01/epg_ripper_FR1.xml.gz"] },
   UK: { name: "Royaume-Uni", flag: "🇬🇧", urls: ["https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz"] },
   ES: { name: "Espagne", flag: "🇪🇸", urls: ["https://epgshare01.online/epgshare01/epg_ripper_ES1.xml.gz"] },
   IT: { name: "Italie", flag: "🇮🇹", urls: ["https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz"] },
   DE: { name: "Allemagne", flag: "🇩🇪", urls: ["https://epgshare01.online/epgshare01/epg_ripper_DE1.xml.gz"] },
-  BE: { name: "Belgique", flag: "🇧🇪", urls: ["https://epgshare01.online/epgshare01/epg_ripper_BE1.xml.gz"] },
-  CH: { name: "Suisse", flag: "🇨🇭", urls: ["https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz"] },
-  PL: { name: "Pologne", flag: "🇵🇱", urls: ["https://epgshare01.online/epgshare01/epg_ripper_PL1.xml.gz"] },
-  RU: { name: "Russie", flag: "🇷🇺", urls: ["https://epgshare01.online/epgshare01/epg_ripper_RU1.xml.gz"] },
 };
 
 const CLASSIFICATION = {
@@ -26,7 +21,7 @@ const CLASSIFICATION = {
       cyclisme: { label: "Cyclisme", kw: ["cyclisme", "cycling", "tour"] },
       golf: { label: "Golf", kw: ["golf"] },
       boxe: { label: "Boxe", kw: ["boxe", "boxing"] },
-      f1: { label: "Formule 1", kw: ["formula", "f1"] },
+      f1: { label: "F1", kw: ["formula", "f1"] },
       motogp: { label: "MotoGP", kw: ["motogp"] },
       athlétisme: { label: "Athlétisme", kw: ["athlétisme", "athletics"] },
     },
@@ -34,45 +29,32 @@ const CLASSIFICATION = {
   film: {
     label: "Films",
     subtypes: {
-      action: { label: "Action", kw: ["action"] },
-      aventure: { label: "Aventure", kw: ["aventure", "adventure"] },
-      animation: { label: "Animation", kw: ["animation", "animated"] },
-      comédie: { label: "Comédie", kw: ["comédie", "comedy"] },
-      drame: { label: "Drame", kw: ["drame", "drama"] },
-      thriller: { label: "Thriller", kw: ["thriller", "suspense"] },
+      action: { label: "Action", kw: ["action", "aventure", "western"] },
+      comédie: { label: "Comédie", kw: ["comédie", "comedy", "musical"] },
+      drame: { label: "Drame", kw: ["drame", "drama", "romance", "amour"] },
+      thriller: { label: "Thriller", kw: ["thriller", "suspense", "crime", "policier", "criminalité"] },
       horreur: { label: "Horreur", kw: ["horreur", "horror"] },
-      policier: { label: "Policier", kw: ["policier", "crime", "criminalité"] },
-      romance: { label: "Romance", kw: ["romance", "amour", "romantic"] },
-      scifi: { label: "Science-fiction", kw: ["science-fiction", "sci-fi", "fantasy", "futuriste"] },
-      western: { label: "Western", kw: ["western", "western"] },
-      fantastique: { label: "Fantastique", kw: ["fantastique", "fantastical", "magical"] },
-      historique: { label: "Historique", kw: ["historique", "historical", "period"] },
-      guerre: { label: "Guerre", kw: ["guerre", "war", "bataille"] },
-      musical: { label: "Musical", kw: ["musical", "music"] },
-      famille: { label: "Famille", kw: ["famille", "family", "kids", "enfant"] },
+      scifi: { label: "Sci-Fi & Fantastique", kw: ["science-fiction", "sci-fi", "fantasy", "fantastique", "surnaturel"] },
+      historique: { label: "Historique", kw: ["historique", "historical", "period", "guerre", "war", "bataille"] },
+      animation: { label: "Animation", kw: ["animation", "animated", "anime", "dessin animé"] },
+      famille: { label: "Famille", kw: ["famille", "family", "kids", "enfant", "jeunesse"] },
       documentaire: { label: "Documentaire", kw: ["documentaire", "documentary", "docu"] },
-      pornographique: { label: "Pornographique", kw: ["pornographique", "porn", "adult", "xxx", "érotique", "erotic"] },
+      érotique: { label: "Érotique", kw: ["érotique", "erotic", "pornographique", "porn", "adult", "xxx", "sensuel"] },
     },
   },
   série: {
     label: "Séries",
     subtypes: {
-      action: { label: "Action", kw: ["action"] },
-      aventure: { label: "Aventure", kw: ["aventure", "adventure"] },
-      animation: { label: "Animation", kw: ["animation", "animated", "anime"] },
+      action: { label: "Action", kw: ["action", "aventure"] },
       comédie: { label: "Comédie", kw: ["comédie", "comedy", "sitcom"] },
-      drame: { label: "Drame", kw: ["drame", "drama"] },
-      thriller: { label: "Thriller", kw: ["thriller", "suspense", "crime", "mystery"] },
-      scifi: { label: "Science-fiction", kw: ["science-fiction", "sci-fi", "fantasy", "futuriste"] },
-      policier: { label: "Policier", kw: ["policier", "police"] },
-      romance: { label: "Romance", kw: ["romance", "amour", "romantic"] },
-      fantastique: { label: "Fantastique", kw: ["fantastique", "fantastical", "magical"] },
-      historique: { label: "Historique", kw: ["historique", "historical", "period"] },
+      drame: { label: "Drame", kw: ["drame", "drama", "romance", "amour", "médical", "medical"] },
+      thriller: { label: "Thriller", kw: ["thriller", "suspense", "crime", "mystery", "policier"] },
+      scifi: { label: "Sci-Fi & Fantastique", kw: ["science-fiction", "sci-fi", "fantasy", "fantastique", "surnaturel", "supernatural"] },
       horreur: { label: "Horreur", kw: ["horreur", "horror", "dark"] },
-      médical: { label: "Médical", kw: ["médical", "medical", "hospital", "doctor"] },
-      famille: { label: "Famille", kw: ["famille", "family", "kids"] },
-      surnaturel: { label: "Surnaturel", kw: ["surnaturel", "supernatural", "paranormal"] },
-      pornographique: { label: "Pornographique", kw: ["pornographique", "porn", "adult", "xxx", "érotique"] },
+      animation: { label: "Animation", kw: ["animation", "animated", "anime"] },
+      famille: { label: "Famille", kw: ["famille", "family", "kids", "jeunesse"] },
+      historique: { label: "Historique", kw: ["historique", "historical", "period"] },
+      érotique: { label: "Érotique", kw: ["érotique", "erotic", "pornographique", "porn", "adult", "xxx"] },
     },
   },
   info: {
@@ -149,8 +131,7 @@ function xmltvToISO(t: string | undefined): string | null {
 }
 
 function asArray<T>(x: T | T[] | undefined): T[] {
-  if (x === undefined || x === null) return [];
-  return Array.isArray(x) ? x : [x];
+  return x === undefined || x === null ? [] : Array.isArray(x) ? x : [x];
 }
 
 function textOf(node: any): string {
@@ -161,7 +142,6 @@ function textOf(node: any): string {
   return "";
 }
 
-// Décodage manuel des entités XML (le parseur a processEntities:false)
 function decode(s: string): string {
   if (!s) return s;
   return s
@@ -191,7 +171,7 @@ async function fetchAndParse(countryCode: string) {
       const res = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (compatible; TVGuideEU/1.0)" },
       });
-      if (!res.ok) { lastErr = new Error(`HTTP ${res.status} sur ${url}`); continue; }
+      if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
       const buf = Buffer.from(await res.arrayBuffer());
       xml = url.endsWith(".gz") ? gunzipSync(buf).toString("utf-8") : buf.toString("utf-8");
       break;
@@ -199,7 +179,12 @@ async function fetchAndParse(countryCode: string) {
   }
   if (!xml) throw lastErr ?? new Error("Aucune source disponible");
 
-  const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_", trimValues: true, processEntities: false });
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_",
+    trimValues: true,
+    processEntities: false,
+  });
   const doc = parser.parse(xml);
   const tv = doc.tv ?? {};
 
@@ -237,7 +222,7 @@ async function fetchAndParse(countryCode: string) {
   };
 }
 
-export default async (req: Request, _context: Context) => {
+export default async (req: Request) => {
   const url = new URL(req.url);
   const country = (url.searchParams.get("country") || "FR").toUpperCase();
 
@@ -254,7 +239,7 @@ export default async (req: Request, _context: Context) => {
       headers: { "Cache-Control": "public, max-age=600, s-maxage=21600, stale-while-revalidate=86400" },
     });
   } catch (e: any) {
-    return Response.json({ error: e?.message || "Erreur de récupération EPG" }, { status: 502 });
+    return Response.json({ error: e?.message || "Erreur EPG" }, { status: 502 });
   }
 };
 
