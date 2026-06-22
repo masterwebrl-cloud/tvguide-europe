@@ -15,8 +15,6 @@
     --muted: #9aa3d4;
     --gold: #e8b647;
     --live: #ff4d5e;
-
-    /* couleurs par type (palette mire TV revisitée, désaturée pour lisibilité) */
     --t-sport: #4fb286;
     --t-film: #c06ad6;
     --t-serie: #5b8def;
@@ -25,8 +23,6 @@
     --t-jeunesse: #e8b647;
     --t-divertissement: #ef6f9e;
     --t-musique: #8a7de8;
-    --t-culture: #c9a86a;
-    --t-cuisine: #d98c5f;
     --t-autre: #6b76b0;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,14 +35,10 @@
   }
   .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 80px; }
 
-  /* Header */
   header {
-    background:
-      linear-gradient(180deg, var(--ink-2), var(--ink));
+    background: linear-gradient(180deg, var(--ink-2), var(--ink));
     border-bottom: 1px solid var(--line);
     padding: 28px 0 24px;
-    position: relative;
-    overflow: hidden;
   }
   header .wrap { padding-bottom: 0; }
   .brand {
@@ -65,11 +57,9 @@
     color: var(--muted); font-size: 14px; letter-spacing: 0.04em;
     text-transform: uppercase;
   }
-  /* mire bars */
   .bars { display: flex; height: 6px; margin-top: 18px; border-radius: 3px; overflow: hidden; }
   .bars span { flex: 1; }
 
-  /* Controls */
   .controls {
     display: grid;
     grid-template-columns: 1fr 1fr auto;
@@ -105,23 +95,30 @@
   .now-toggle.active .led { background: var(--live); box-shadow: 0 0 8px var(--live); animation: pulse 1.6s infinite; }
   @keyframes pulse { 50% { opacity: 0.4; } }
 
-  /* Type chips */
-  .types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
-  .chip {
+  /* Type filters with subtypes */
+  .types-container { margin-bottom: 22px; }
+  .types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .type-btn {
     background: var(--panel); border: 1px solid var(--line);
     color: var(--muted); padding: 7px 13px; border-radius: 20px;
     font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
-    transition: all 0.12s;
+    transition: all 0.12s; user-select: none;
   }
-  .chip .swatch { width: 10px; height: 10px; border-radius: 50%; }
-  .chip.active { color: var(--ink); font-weight: 600; border-color: transparent; }
-  .chip:hover { border-color: var(--gold); }
+  .type-btn .swatch { width: 10px; height: 10px; border-radius: 50%; }
+  .type-btn.active { color: var(--ink); font-weight: 600; border-color: transparent; }
+  .type-btn:hover { border-color: var(--gold); }
+  .subtypes { display: flex; flex-wrap: wrap; gap: 6px; margin-left: 16px; padding-left: 10px; border-left: 2px solid var(--line); }
+  .subtype-btn {
+    background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--muted); padding: 5px 10px; border-radius: 16px;
+    font-size: 12px; cursor: pointer; transition: all 0.12s; user-select: none;
+  }
+  .subtype-btn.active { color: var(--ink); font-weight: 600; border-color: transparent; }
+  .subtype-btn:hover { border-color: var(--gold); }
 
-  /* Status / meta */
   .meta { color: var(--muted); font-size: 13px; margin-bottom: 18px; display: flex; gap: 16px; flex-wrap: wrap; }
   .meta strong { color: var(--text); }
 
-  /* Channel groups */
   .channel-block { margin-bottom: 30px; }
   .channel-head {
     display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
@@ -139,7 +136,6 @@
   .channel-head h2 { font-size: 17px; font-weight: 700; }
   .channel-head .count { color: var(--muted); font-size: 12px; margin-left: auto; }
 
-  /* Programme rows */
   .prog {
     display: grid; grid-template-columns: 64px 8px 1fr; gap: 12px;
     padding: 11px 14px; border-radius: 9px; background: var(--panel);
@@ -214,7 +210,7 @@
     </div>
   </div>
 
-  <div class="types" id="types"></div>
+  <div class="types-container" id="typesContainer"></div>
 
   <div class="meta" id="meta"></div>
 
@@ -224,48 +220,110 @@
 </div>
 
 <script>
-const TYPES = [
-  { id: "sport", label: "Sport" },
-  { id: "film", label: "Films" },
-  { id: "série", label: "Séries" },
-  { id: "info", label: "Info" },
-  { id: "documentaire", label: "Docs" },
-  { id: "jeunesse", label: "Jeunesse" },
-  { id: "divertissement", label: "Divertissement" },
-  { id: "musique", label: "Musique" },
-  { id: "culture", label: "Culture" },
-  { id: "cuisine", label: "Cuisine" },
-  { id: "autre", label: "Autre" },
-];
-const typeColor = (t) => getComputedStyle(document.documentElement).getPropertyValue("--t-" + t).trim() || "var(--t-autre)";
-const typeLabel = (t) => (TYPES.find(x => x.id === t) || {label:"Autre"}).label;
+const TYPES = {
+  sport: { label: "Sport", color: "var(--t-sport)" },
+  film: { label: "Films", color: "var(--t-film)" },
+  série: { label: "Séries", color: "var(--t-serie)" },
+  info: { label: "Info", color: "var(--t-info)" },
+  documentaire: { label: "Documentaire", color: "var(--t-documentaire)" },
+  jeunesse: { label: "Jeunesse", color: "var(--t-jeunesse)" },
+  divertissement: { label: "Divertissement", color: "var(--t-divertissement)" },
+  musique: { label: "Musique", color: "var(--t-musique)" },
+  autre: { label: "Autre", color: "var(--t-autre)" },
+};
+
+const SUBTYPES = {
+  sport: { football: "Football", rugby: "Rugby", tennis: "Tennis", basket: "Basket", cyclisme: "Cyclisme", golf: "Golf", boxe: "Boxe", f1: "F1", motogp: "MotoGP", athlétisme: "Athlétisme" },
+  film: { action: "Action", comédie: "Comédie", drame: "Drame", thriller: "Thriller", horreur: "Horreur", policier: "Policier", romance: "Romance", scifi: "Sci-fi" },
+  série: { drame: "Drame", comédie: "Comédie", thriller: "Thriller", scifi: "Sci-fi", policier: "Policier" },
+  info: { journal: "Journal", magazine: "Magazine" },
+  documentaire: { nature: "Nature", histoire: "Histoire", science: "Science" },
+  jeunesse: { animation: "Dessin animé" },
+  divertissement: { varieté: "Variété", gameshow: "Jeu", humour: "Humour" },
+  musique: { concert: "Concert" },
+};
 
 const state = {
   data: null,
   activeTypes: new Set(),
+  activeSubtypes: new Set(),
   search: "",
   nowOnly: false,
   loading: false,
+  expandedType: null,
 };
 
-// mire bars in header
-document.getElementById("bars").innerHTML = TYPES.slice(0,8)
-  .map(t => `<span style="background:${typeColor(t.id)}"></span>`).join("");
+document.getElementById("bars").innerHTML = Object.entries(TYPES).slice(0,8)
+  .map(([k,v]) => `<span style="background:${v.color}"></span>`).join("");
 
-// type chips
-const typesEl = document.getElementById("types");
-TYPES.forEach(t => {
-  const c = document.createElement("div");
-  c.className = "chip";
-  c.dataset.type = t.id;
-  c.innerHTML = `<span class="swatch" style="background:${typeColor(t.id)}"></span>${t.label}`;
-  c.onclick = () => {
-    if (state.activeTypes.has(t.id)) { state.activeTypes.delete(t.id); c.classList.remove("active"); c.style.background=""; }
-    else { state.activeTypes.add(t.id); c.classList.add("active"); c.style.background = typeColor(t.id); }
+// Types container
+const typesEl = document.getElementById("typesContainer");
+let typesHtml = `<div class="types" id="typesList"></div><div id="subtypesList"></div>`;
+typesEl.innerHTML = typesHtml;
+const typesList = document.getElementById("typesList");
+
+for (const [typeKey, typeObj] of Object.entries(TYPES)) {
+  const btn = document.createElement("div");
+  btn.className = "type-btn";
+  btn.dataset.type = typeKey;
+  const col = getComputedStyle(document.documentElement).getPropertyValue(typeObj.color.substring(4, typeObj.color.length-1)).trim();
+  btn.innerHTML = `<span class="swatch" style="background:${col}"></span>${typeObj.label}`;
+  btn.onclick = () => {
+    if (state.activeTypes.has(typeKey)) {
+      state.activeTypes.delete(typeKey);
+      state.activeSubtypes.forEach(st => { if (st.startsWith(typeKey+":")) state.activeSubtypes.delete(st); });
+      btn.classList.remove("active");
+      btn.style.background = "";
+      state.expandedType = null;
+    } else {
+      state.activeTypes.add(typeKey);
+      btn.classList.add("active");
+      btn.style.background = col;
+      state.expandedType = typeKey;
+    }
+    updateSubtypesList();
     render();
   };
-  typesEl.appendChild(c);
-});
+  typesList.appendChild(btn);
+}
+
+function updateSubtypesList() {
+  const subtypesContainer = document.getElementById("subtypesList");
+  if (!state.expandedType || !SUBTYPES[state.expandedType]) {
+    subtypesContainer.innerHTML = "";
+    return;
+  }
+  const subtypes = SUBTYPES[state.expandedType];
+  let html = `<div class="subtypes">`;
+  for (const [subKey, subLabel] of Object.entries(subtypes)) {
+    const stKey = `${state.expandedType}:${subKey}`;
+    const isActive = state.activeSubtypes.has(stKey);
+    html += `<div class="subtype-btn ${isActive ? "active" : ""}" data-subtype="${stKey}" style="${isActive ? `background:${getComputedStyle(document.documentElement).getPropertyValue(TYPES[state.expandedType].color.substring(4, TYPES[state.expandedType].color.length-1)).trim()};` : ""}">${subLabel}</div>`;
+  }
+  html += `</div>`;
+  subtypesContainer.innerHTML = html;
+  subtypesContainer.querySelectorAll(".subtype-btn").forEach(btn => {
+    btn.onclick = () => {
+      const stKey = btn.dataset.subtype;
+      if (state.activeSubtypes.has(stKey)) {
+        state.activeSubtypes.delete(stKey);
+        btn.classList.remove("active");
+        btn.style.background = "";
+      } else {
+        state.activeSubtypes.add(stKey);
+        btn.classList.add("active");
+        const col = getComputedStyle(document.documentElement).getPropertyValue(TYPES[state.expandedType].color.substring(4, TYPES[state.expandedType].color.length-1)).trim();
+        btn.style.background = col;
+      }
+      render();
+    };
+  });
+}
+
+const typeColor = (type) => {
+  const css = TYPES[type]?.color || TYPES.autre.color;
+  return getComputedStyle(document.documentElement).getPropertyValue(css.substring(4, css.length-1)).trim();
+};
 
 const fmtTime = (iso) => {
   if (!iso) return "—";
@@ -305,22 +363,22 @@ function render() {
   const q = state.search.toLowerCase().trim();
 
   let progs = programmes.filter(p => {
-    if (state.activeTypes.size && !state.activeTypes.has(p.type)) return false;
+    if (state.activeTypes.size) {
+      const hasType = state.activeTypes.has(p.type);
+      const hasSubtype = state.activeSubtypes.size === 0 || state.activeSubtypes.has(`${p.type}:${p.subtype}`);
+      if (!(hasType && hasSubtype)) return false;
+    }
     if (state.nowOnly && !isLive(p)) return false;
     if (q && !(p.title.toLowerCase().includes(q) || p.channelName.toLowerCase().includes(q))) return false;
-    // si pas "à l'antenne", limiter aux programmes à venir + en cours (pas le passé)
     if (!state.nowOnly && p.stop && new Date(p.stop).getTime() < now) return false;
     return true;
   });
 
-  // meta
-  const liveCount = programmes.filter(isLive).length;
   document.getElementById("meta").innerHTML =
     `<span>${state.data.flag} <strong>${state.data.countryName}</strong></span>
      <span><strong>${channels.length}</strong> chaînes</span>
      <span><strong>${progs.length}</strong> programmes affichés</span>
-     <span><strong>${liveCount}</strong> en direct</span>
-     <span>MAJ ${new Date(state.data.generatedAt).toLocaleString("fr-FR", {day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</span>`;
+     <span><strong>${programmes.filter(isLive).length}</strong> en direct</span>`;
 
   if (!progs.length) {
     document.getElementById("content").innerHTML =
@@ -328,7 +386,6 @@ function render() {
     return;
   }
 
-  // group by channel, sorted by channel name; within channel sort by start
   const byChannel = {};
   for (const p of progs) (byChannel[p.channel] ||= []).push(p);
   const channelMap = Object.fromEntries(channels.map(c => [c.id, c]));
@@ -340,19 +397,20 @@ function render() {
     const ch = channelMap[chId] || { name: chId, icon: null };
     const list = byChannel[chId].sort((a,b) => (a.start||"").localeCompare(b.start||"")).slice(0, 40);
     const logo = ch.icon
-      ? `<img class="logo" src="${ch.icon}" alt="" onerror="this.outerHTML='<div class=&quot;logo-fallback&quot;>${(ch.name[0]||'?')}</div>'">`
+      ? `<img class="logo" src="${ch.icon}" alt="" onerror="this.outerHTML='<div class=&quot;logo-fallback&quot;>${(ch.name[0]||'?')}</div>';" />`
       : `<div class="logo-fallback">${(ch.name[0]||"?").toUpperCase()}</div>`;
     html += `<div class="channel-block">
       <div class="channel-head">${logo}<h2>${esc(ch.name)}</h2><span class="count">${byChannel[chId].length} prog.</span></div>`;
     for (const p of list) {
       const live = isLive(p);
       const col = typeColor(p.type);
+      const subLabel = SUBTYPES[p.type]?.[p.subtype] || "Autre";
       html += `<div class="prog ${live ? "live" : ""}">
         <div class="time">${fmtTime(p.start)}<span class="end">${fmtTime(p.stop)}</span></div>
         <div class="rail" style="background:${col}"></div>
         <div class="body">
           <div class="title">${esc(p.title)}${live ? '<span class="live-badge">DIRECT</span>' : ""}</div>
-          <div class="tline"><span class="type-tag" style="color:${col}">${typeLabel(p.type)}</span></div>
+          <div class="tline"><span class="type-tag" style="color:${col}">${subLabel}</span></div>
           ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ""}
         </div>
       </div>`;
@@ -364,7 +422,6 @@ function render() {
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
-// events
 document.getElementById("country").onchange = (e) => load(e.target.value);
 let st;
 document.getElementById("search").oninput = (e) => {
