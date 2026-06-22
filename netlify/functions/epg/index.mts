@@ -105,7 +105,7 @@ const CLASSIFICATION = {
       },
       érotique: { 
         label: "Érotique", 
-        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "sensuel", "sensual", "sensuale", "sensual", "pornographique", "pornographic", "porn", "adult", "xxx", "erotic film", "film érotique", "película erótica", "erotischer film", "adult film"] 
+        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "erotik", "sensuel", "sensual", "sensuale", "sensual", "pornographique", "pornographic", "porn", "adult", "xxx", "erotic film", "film érotique", "película erótica", "erotischer film", "adult film", "erotico", "erotici", "pornografici", "pornográficas", "eróticas", "adultos"] 
       },
     },
   },
@@ -150,7 +150,7 @@ const CLASSIFICATION = {
       },
       érotique: { 
         label: "Érotique", 
-        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "sensuel", "sensual", "sensuale", "pornographique", "pornographic", "adult", "xxx", "erotic series", "adult series"] 
+        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "erotik", "sensuel", "sensual", "sensuale", "pornographique", "pornographic", "adult", "xxx", "erotic series", "adult series", "erotico", "erotici", "pornografici", "pornográficas", "eróticas", "adultos"] 
       },
     },
   },
