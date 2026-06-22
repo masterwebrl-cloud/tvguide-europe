@@ -95,7 +95,6 @@
   .now-toggle.active .led { background: var(--live); box-shadow: 0 0 8px var(--live); animation: pulse 1.6s infinite; }
   @keyframes pulse { 50% { opacity: 0.4; } }
 
-  /* Type filters with subtypes */
   .types-container { margin-bottom: 22px; }
   .types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .type-btn {
@@ -107,11 +106,11 @@
   .type-btn .swatch { width: 10px; height: 10px; border-radius: 50%; }
   .type-btn.active { color: var(--ink); font-weight: 600; border-color: transparent; }
   .type-btn:hover { border-color: var(--gold); }
-  .subtypes { display: flex; flex-wrap: wrap; gap: 6px; margin-left: 16px; padding-left: 10px; border-left: 2px solid var(--line); }
+  .subtypes { display: flex; flex-wrap: wrap; gap: 6px; margin-left: 16px; padding-left: 10px; border-left: 2px solid var(--line); max-height: 200px; overflow-y: auto; }
   .subtype-btn {
     background: var(--panel-2); border: 1px solid var(--line);
     color: var(--muted); padding: 5px 10px; border-radius: 16px;
-    font-size: 12px; cursor: pointer; transition: all 0.12s; user-select: none;
+    font-size: 12px; cursor: pointer; transition: all 0.12s; user-select: none; white-space: nowrap;
   }
   .subtype-btn.active { color: var(--ink); font-weight: 600; border-color: transparent; }
   .subtype-btn:hover { border-color: var(--gold); }
@@ -169,6 +168,7 @@
   @media (max-width: 720px) {
     .controls { grid-template-columns: 1fr; }
     .prog { grid-template-columns: 56px 6px 1fr; gap: 9px; padding: 10px; }
+    .subtypes { max-height: 150px; }
   }
   @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; }
@@ -196,6 +196,10 @@
         <option value="ES">🇪🇸 Espagne</option>
         <option value="IT">🇮🇹 Italie</option>
         <option value="DE">🇩🇪 Allemagne</option>
+        <option value="BE">🇧🇪 Belgique</option>
+        <option value="CH">🇨🇭 Suisse</option>
+        <option value="PL">🇵🇱 Pologne</option>
+        <option value="RU">🇷🇺 Russie</option>
       </select>
     </div>
     <div class="field">
@@ -234,8 +238,8 @@ const TYPES = {
 
 const SUBTYPES = {
   sport: { football: "Football", rugby: "Rugby", tennis: "Tennis", basket: "Basket", cyclisme: "Cyclisme", golf: "Golf", boxe: "Boxe", f1: "F1", motogp: "MotoGP", athlétisme: "Athlétisme" },
-  film: { action: "Action", comédie: "Comédie", drame: "Drame", thriller: "Thriller", horreur: "Horreur", policier: "Policier", romance: "Romance", scifi: "Sci-fi" },
-  série: { drame: "Drame", comédie: "Comédie", thriller: "Thriller", scifi: "Sci-fi", policier: "Policier" },
+  film: { action: "Action", aventure: "Aventure", animation: "Animation", comédie: "Comédie", drame: "Drame", thriller: "Thriller", horreur: "Horreur", policier: "Policier", romance: "Romance", scifi: "Sci-fi", western: "Western", fantastique: "Fantastique", historique: "Historique", guerre: "Guerre", musical: "Musical", famille: "Famille", documentaire: "Documentaire", pornographique: "Pornographique" },
+  série: { action: "Action", aventure: "Aventure", animation: "Animation", comédie: "Comédie", drame: "Drame", thriller: "Thriller", scifi: "Sci-fi", policier: "Policier", romance: "Romance", fantastique: "Fantastique", historique: "Historique", horreur: "Horreur", médical: "Médical", famille: "Famille", surnaturel: "Surnaturel", pornographique: "Pornographique" },
   info: { journal: "Journal", magazine: "Magazine" },
   documentaire: { nature: "Nature", histoire: "Histoire", science: "Science" },
   jeunesse: { animation: "Dessin animé" },
@@ -256,7 +260,6 @@ const state = {
 document.getElementById("bars").innerHTML = Object.entries(TYPES).slice(0,8)
   .map(([k,v]) => `<span style="background:${v.color}"></span>`).join("");
 
-// Types container
 const typesEl = document.getElementById("typesContainer");
 let typesHtml = `<div class="types" id="typesList"></div><div id="subtypesList"></div>`;
 typesEl.innerHTML = typesHtml;
