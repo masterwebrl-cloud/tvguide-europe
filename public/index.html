@@ -1,127 +1,387 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TV Guide Europe</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Antenne — Programme TV Europe</title>
+<style>
+  :root {
+    --ink: #0a0e27;
+    --ink-2: #141a3a;
+    --panel: #1a2145;
+    --panel-2: #232c5a;
+    --line: #2e3870;
+    --text: #e8ebff;
+    --muted: #9aa3d4;
+    --gold: #e8b647;
+    --live: #ff4d5e;
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
-    }
+    /* couleurs par type (palette mire TV revisitée, désaturée pour lisibilité) */
+    --t-sport: #4fb286;
+    --t-film: #c06ad6;
+    --t-serie: #5b8def;
+    --t-info: #e07b53;
+    --t-documentaire: #4cc0c8;
+    --t-jeunesse: #e8b647;
+    --t-divertissement: #ef6f9e;
+    --t-musique: #8a7de8;
+    --t-culture: #c9a86a;
+    --t-cuisine: #d98c5f;
+    --t-autre: #6b76b0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.45;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 80px; }
 
-    header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 2rem;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+  /* Header */
+  header {
+    background:
+      linear-gradient(180deg, var(--ink-2), var(--ink));
+    border-bottom: 1px solid var(--line);
+    padding: 28px 0 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  header .wrap { padding-bottom: 0; }
+  .brand {
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  }
+  .brand h1 {
+    font-family: "Archivo", "Inter", sans-serif;
+    font-size: clamp(34px, 6vw, 58px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+  .brand h1 .dot { color: var(--gold); }
+  .brand .tag {
+    color: var(--muted); font-size: 14px; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  /* mire bars */
+  .bars { display: flex; height: 6px; margin-top: 18px; border-radius: 3px; overflow: hidden; }
+  .bars span { flex: 1; }
 
-    header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-    }
+  /* Controls */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 14px;
+    margin: 26px 0 18px;
+    align-items: end;
+  }
+  .field label {
+    display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  select, input[type="search"] {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 11px 13px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+  }
+  select:focus, input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .now-toggle {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 11px 15px; border-radius: 8px; cursor: pointer;
+    font-size: 14px; white-space: nowrap; user-select: none;
+  }
+  .now-toggle.active { border-color: var(--live); color: #fff; background: rgba(255,77,94,0.12); }
+  .now-toggle .led {
+    width: 9px; height: 9px; border-radius: 50%; background: #555f9c;
+  }
+  .now-toggle.active .led { background: var(--live); box-shadow: 0 0 8px var(--live); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
 
-    header p {
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
+  /* Type chips */
+  .types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .chip {
+    background: var(--panel); border: 1px solid var(--line);
+    color: var(--muted); padding: 7px 13px; border-radius: 20px;
+    font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    transition: all 0.12s;
+  }
+  .chip .swatch { width: 10px; height: 10px; border-radius: 50%; }
+  .chip.active { color: var(--ink); font-weight: 600; border-color: transparent; }
+  .chip:hover { border-color: var(--gold); }
 
-    main {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
+  /* Status / meta */
+  .meta { color: var(--muted); font-size: 13px; margin-bottom: 18px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .meta strong { color: var(--text); }
 
-    .container {
-      background: white;
-      border-radius: 8px;
-      padding: 2rem;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    }
+  /* Channel groups */
+  .channel-block { margin-bottom: 30px; }
+  .channel-head {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .channel-head .logo {
+    width: 36px; height: 36px; border-radius: 7px; object-fit: contain;
+    background: #fff; padding: 3px; flex-shrink: 0;
+  }
+  .channel-head .logo-fallback {
+    width: 36px; height: 36px; border-radius: 7px; flex-shrink: 0;
+    background: var(--panel-2); display: grid; place-items: center;
+    font-weight: 700; font-size: 14px; color: var(--gold);
+  }
+  .channel-head h2 { font-size: 17px; font-weight: 700; }
+  .channel-head .count { color: var(--muted); font-size: 12px; margin-left: auto; }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }
+  /* Programme rows */
+  .prog {
+    display: grid; grid-template-columns: 64px 8px 1fr; gap: 12px;
+    padding: 11px 14px; border-radius: 9px; background: var(--panel);
+    border: 1px solid transparent; margin-bottom: 7px; align-items: start;
+  }
+  .prog.live { border-color: var(--live); background: rgba(255,77,94,0.07); }
+  .prog .time { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; }
+  .prog .time .end { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+  .prog .rail { width: 4px; border-radius: 2px; align-self: stretch; }
+  .prog .body .title { font-weight: 600; font-size: 15px; }
+  .prog .body .live-badge {
+    display: inline-block; background: var(--live); color: #fff; font-size: 10px;
+    font-weight: 700; padding: 1px 7px; border-radius: 4px; margin-left: 8px;
+    letter-spacing: 0.05em; vertical-align: middle;
+  }
+  .prog .body .tline { display: flex; gap: 8px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
+  .prog .body .type-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .prog .body .desc { color: var(--muted); font-size: 13px; margin-top: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-    .card {
-      background: #f9f9f9;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
-      padding: 1.5rem;
-      transition: all 0.3s ease;
-    }
+  .state { text-align: center; padding: 70px 20px; color: var(--muted); }
+  .state .spinner {
+    width: 34px; height: 34px; border: 3px solid var(--line); border-top-color: var(--gold);
+    border-radius: 50%; margin: 0 auto 18px; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .state button {
+    margin-top: 16px; background: var(--gold); color: var(--ink); border: none;
+    padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;
+  }
 
-    .card:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transform: translateY(-2px);
-    }
-
-    .card h3 {
-      color: #667eea;
-      margin-bottom: 0.5rem;
-    }
-
-    .card p {
-      font-size: 0.95rem;
-      line-height: 1.5;
-      color: #666;
-    }
-
-    footer {
-      background: #2c3e50;
-      color: white;
-      text-align: center;
-      padding: 2rem;
-      margin-top: 3rem;
-      font-size: 0.9rem;
-    }
-  </style>
+  @media (max-width: 720px) {
+    .controls { grid-template-columns: 1fr; }
+    .prog { grid-template-columns: 56px 6px 1fr; gap: 9px; padding: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; }
+  }
+</style>
 </head>
 <body>
-  <header>
-    <h1>📺 TV Guide Europe</h1>
-    <p>Your gateway to European television schedules</p>
-  </header>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <h1>Antenne<span class="dot">.</span></h1>
+      <span class="tag">Programme TV — Europe</span>
+    </div>
+    <div class="bars" id="bars"></div>
+  </div>
+</header>
 
-  <main>
-    <div class="container">
-      <h2>Welcome to TV Guide Europe</h2>
-      <p>Browse television schedules from across Europe. Select your country and preferred channels to get started.</p>
-      
-      <div class="grid">
-        <div class="card">
-          <h3>🌍 Multi-Country Support</h3>
-          <p>Access TV guides from major European countries including UK, France, Germany, Spain, Italy, and more.</p>
-        </div>
-        <div class="card">
-          <h3>📅 Schedule View</h3>
-          <p>View detailed program schedules with time slots, descriptions, and genre information.</p>
-        </div>
-        <div class="card">
-          <h3>📱 Responsive Design</h3>
-          <p>Seamlessly browse TV guides on desktop, tablet, or mobile devices.</p>
-        </div>
+<div class="wrap">
+  <div class="controls">
+    <div class="field">
+      <label for="country">Pays</label>
+      <select id="country">
+        <option value="FR">🇫🇷 France</option>
+        <option value="UK">🇬🇧 Royaume-Uni</option>
+        <option value="ES">🇪🇸 Espagne</option>
+        <option value="IT">🇮🇹 Italie</option>
+        <option value="DE">🇩🇪 Allemagne</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="search">Chaîne ou programme</label>
+      <input type="search" id="search" placeholder="Rechercher…" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>&nbsp;</label>
+      <div class="now-toggle" id="nowToggle" role="button" tabindex="0" aria-pressed="false">
+        <span class="led"></span> À l'antenne
       </div>
     </div>
-  </main>
+  </div>
 
-  <footer>
-    <p>&copy; 2026 TV Guide Europe. All rights reserved.</p>
-  </footer>
+  <div class="types" id="types"></div>
 
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+  <div class="meta" id="meta"></div>
+
+  <div id="content">
+    <div class="state"><div class="spinner"></div>Chargement du programme…</div>
+  </div>
+</div>
+
+<script>
+const TYPES = [
+  { id: "sport", label: "Sport" },
+  { id: "film", label: "Films" },
+  { id: "série", label: "Séries" },
+  { id: "info", label: "Info" },
+  { id: "documentaire", label: "Docs" },
+  { id: "jeunesse", label: "Jeunesse" },
+  { id: "divertissement", label: "Divertissement" },
+  { id: "musique", label: "Musique" },
+  { id: "culture", label: "Culture" },
+  { id: "cuisine", label: "Cuisine" },
+  { id: "autre", label: "Autre" },
+];
+const typeColor = (t) => getComputedStyle(document.documentElement).getPropertyValue("--t-" + t).trim() || "var(--t-autre)";
+const typeLabel = (t) => (TYPES.find(x => x.id === t) || {label:"Autre"}).label;
+
+const state = {
+  data: null,
+  activeTypes: new Set(),
+  search: "",
+  nowOnly: false,
+  loading: false,
+};
+
+// mire bars in header
+document.getElementById("bars").innerHTML = TYPES.slice(0,8)
+  .map(t => `<span style="background:${typeColor(t.id)}"></span>`).join("");
+
+// type chips
+const typesEl = document.getElementById("types");
+TYPES.forEach(t => {
+  const c = document.createElement("div");
+  c.className = "chip";
+  c.dataset.type = t.id;
+  c.innerHTML = `<span class="swatch" style="background:${typeColor(t.id)}"></span>${t.label}`;
+  c.onclick = () => {
+    if (state.activeTypes.has(t.id)) { state.activeTypes.delete(t.id); c.classList.remove("active"); c.style.background=""; }
+    else { state.activeTypes.add(t.id); c.classList.add("active"); c.style.background = typeColor(t.id); }
+    render();
+  };
+  typesEl.appendChild(c);
+});
+
+const fmtTime = (iso) => {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+};
+const isLive = (p) => {
+  if (!p.start || !p.stop) return false;
+  const now = Date.now();
+  return new Date(p.start).getTime() <= now && now < new Date(p.stop).getTime();
+};
+
+async function load(country, force) {
+  state.loading = true;
+  document.getElementById("content").innerHTML =
+    `<div class="state"><div class="spinner"></div>Chargement du programme ${country}…</div>`;
+  try {
+    const res = await fetch(`/api/epg?country=${country}${force ? "&refresh=1" : ""}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Erreur ${res.status}`);
+    }
+    state.data = await res.json();
+    state.loading = false;
+    render();
+  } catch (e) {
+    state.loading = false;
+    document.getElementById("content").innerHTML =
+      `<div class="state">Impossible de charger le programme.<br><span style="font-size:13px">${e.message}</span><br>
+       <button onclick="load('${country}', true)">Réessayer</button></div>`;
+  }
+}
+
+function render() {
+  if (!state.data) return;
+  const { programmes, channels } = state.data;
+  const now = Date.now();
+  const q = state.search.toLowerCase().trim();
+
+  let progs = programmes.filter(p => {
+    if (state.activeTypes.size && !state.activeTypes.has(p.type)) return false;
+    if (state.nowOnly && !isLive(p)) return false;
+    if (q && !(p.title.toLowerCase().includes(q) || p.channelName.toLowerCase().includes(q))) return false;
+    // si pas "à l'antenne", limiter aux programmes à venir + en cours (pas le passé)
+    if (!state.nowOnly && p.stop && new Date(p.stop).getTime() < now) return false;
+    return true;
+  });
+
+  // meta
+  const liveCount = programmes.filter(isLive).length;
+  document.getElementById("meta").innerHTML =
+    `<span>${state.data.flag} <strong>${state.data.countryName}</strong></span>
+     <span><strong>${channels.length}</strong> chaînes</span>
+     <span><strong>${progs.length}</strong> programmes affichés</span>
+     <span><strong>${liveCount}</strong> en direct</span>
+     <span>MAJ ${new Date(state.data.generatedAt).toLocaleString("fr-FR", {day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</span>`;
+
+  if (!progs.length) {
+    document.getElementById("content").innerHTML =
+      `<div class="state">Aucun programme ne correspond. Élargissez les filtres ou changez de pays.</div>`;
+    return;
+  }
+
+  // group by channel, sorted by channel name; within channel sort by start
+  const byChannel = {};
+  for (const p of progs) (byChannel[p.channel] ||= []).push(p);
+  const channelMap = Object.fromEntries(channels.map(c => [c.id, c]));
+  const sortedChannels = Object.keys(byChannel).sort((a,b) =>
+    (channelMap[a]?.name || a).localeCompare(channelMap[b]?.name || b, "fr"));
+
+  let html = "";
+  for (const chId of sortedChannels) {
+    const ch = channelMap[chId] || { name: chId, icon: null };
+    const list = byChannel[chId].sort((a,b) => (a.start||"").localeCompare(b.start||"")).slice(0, 40);
+    const logo = ch.icon
+      ? `<img class="logo" src="${ch.icon}" alt="" onerror="this.outerHTML='<div class=&quot;logo-fallback&quot;>${(ch.name[0]||'?')}</div>'">`
+      : `<div class="logo-fallback">${(ch.name[0]||"?").toUpperCase()}</div>`;
+    html += `<div class="channel-block">
+      <div class="channel-head">${logo}<h2>${esc(ch.name)}</h2><span class="count">${byChannel[chId].length} prog.</span></div>`;
+    for (const p of list) {
+      const live = isLive(p);
+      const col = typeColor(p.type);
+      html += `<div class="prog ${live ? "live" : ""}">
+        <div class="time">${fmtTime(p.start)}<span class="end">${fmtTime(p.stop)}</span></div>
+        <div class="rail" style="background:${col}"></div>
+        <div class="body">
+          <div class="title">${esc(p.title)}${live ? '<span class="live-badge">DIRECT</span>' : ""}</div>
+          <div class="tline"><span class="type-tag" style="color:${col}">${typeLabel(p.type)}</span></div>
+          ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ""}
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  document.getElementById("content").innerHTML = html;
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+// events
+document.getElementById("country").onchange = (e) => load(e.target.value);
+let st;
+document.getElementById("search").oninput = (e) => {
+  state.search = e.target.value;
+  clearTimeout(st); st = setTimeout(render, 180);
+};
+const nowToggle = document.getElementById("nowToggle");
+const toggleNow = () => {
+  state.nowOnly = !state.nowOnly;
+  nowToggle.classList.toggle("active", state.nowOnly);
+  nowToggle.setAttribute("aria-pressed", state.nowOnly);
+  render();
+};
+nowToggle.onclick = toggleNow;
+nowToggle.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleNow(); } };
+
+load("FR");
+</script>
 </body>
 </html>
