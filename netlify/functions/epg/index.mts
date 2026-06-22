@@ -2,6 +2,7 @@ import type { Context, Config } from "@netlify/functions";
 import { gunzipSync } from "node:zlib";
 import { XMLParser } from "fast-xml-parser";
 
+// --- Sources XMLTV (gzip), MAJ quotidienne ---
 const SOURCES: Record<string, { name: string; flag: string; urls: string[] }> = {
   FR: { name: "France", flag: "🇫🇷", urls: ["https://epgshare01.online/epgshare01/epg_ripper_FR1.xml.gz"] },
   UK: { name: "Royaume-Uni", flag: "🇬🇧", urls: ["https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz"] },
@@ -10,25 +11,106 @@ const SOURCES: Record<string, { name: string; flag: string; urls: string[] }> = 
   DE: { name: "Allemagne", flag: "🇩🇪", urls: ["https://epgshare01.online/epgshare01/epg_ripper_DE1.xml.gz"] },
 };
 
-const TYPE_RULES: { type: string; kw: string[] }[] = [
-  { type: "sport",        kw: ["sport", "football", "soccer", "rugby", "tennis", "basket", "cyclisme", "cycling", "golf", "boxe", "boxing", "formula", "f1", "motogp"] },
-  { type: "film",         kw: ["film", "movie", "cinéma", "cinema", "long métrage", "feature film", "película", "kino"] },
-  { type: "série",        kw: ["série", "series", "serie", "feuilleton", "soap", "drama series", "sitcom"] },
-  { type: "info",         kw: ["news", "info", "journal", "actualité", "actualités", "noticias", "nachrichten"] },
-  { type: "documentaire", kw: ["documentaire", "documentary", "docu", "reportage", "documental", "dokumentation"] },
-  { type: "jeunesse",     kw: ["jeunesse", "enfant", "kids", "children", "cartoon", "dessin animé", "animation"] },
-  { type: "divertissement", kw: ["divertissement", "entertainment", "variété", "variety", "talk", "show", "humour", "comedy"] },
-  { type: "musique",      kw: ["musique", "music", "concert", "musik"] },
-  { type: "culture",      kw: ["culture", "art", "théâtre", "theatre", "opéra", "opera"] },
-  { type: "cuisine",      kw: ["cuisine", "cooking", "food", "gastronomie"] },
-];
+const CLASSIFICATION = {
+  sport: {
+    label: "Sport",
+    subtypes: {
+      football: { label: "Football", kw: ["football", "soccer", "fútbol"] },
+      rugby: { label: "Rugby", kw: ["rugby"] },
+      tennis: { label: "Tennis", kw: ["tennis"] },
+      basket: { label: "Basket", kw: ["basket", "basketball", "nba"] },
+      cyclisme: { label: "Cyclisme", kw: ["cyclisme", "cycling", "tour"] },
+      golf: { label: "Golf", kw: ["golf"] },
+      boxe: { label: "Boxe", kw: ["boxe", "boxing"] },
+      f1: { label: "Formule 1", kw: ["formula", "f1"] },
+      motogp: { label: "MotoGP", kw: ["motogp"] },
+      athlétisme: { label: "Athlétisme", kw: ["athlétisme", "athletics"] },
+    },
+  },
+  film: {
+    label: "Films",
+    subtypes: {
+      action: { label: "Action", kw: ["action"] },
+      comédie: { label: "Comédie", kw: ["comédie", "comedy"] },
+      drame: { label: "Drame", kw: ["drame", "drama"] },
+      thriller: { label: "Thriller", kw: ["thriller", "suspense"] },
+      horreur: { label: "Horreur", kw: ["horreur", "horror"] },
+      policier: { label: "Policier", kw: ["policier", "crime", "criminalité"] },
+      romance: { label: "Romance", kw: ["romance", "amour"] },
+      scifi: { label: "Science-fiction", kw: ["science-fiction", "sci-fi", "fantasy"] },
+    },
+  },
+  série: {
+    label: "Séries",
+    subtypes: {
+      drame: { label: "Drame", kw: ["drame", "drama"] },
+      comédie: { label: "Comédie", kw: ["comédie", "comedy", "sitcom"] },
+      thriller: { label: "Thriller", kw: ["thriller", "suspense", "crime"] },
+      scifi: { label: "Science-fiction", kw: ["science-fiction", "sci-fi", "fantasy"] },
+      policier: { label: "Policier", kw: ["policier"] },
+    },
+  },
+  info: {
+    label: "Info",
+    subtypes: {
+      journal: { label: "Journal", kw: ["journal", "news", "actualité"] },
+      magazine: { label: "Magazine", kw: ["magazine", "reportage", "investigation"] },
+    },
+  },
+  documentaire: {
+    label: "Documentaire",
+    subtypes: {
+      nature: { label: "Nature", kw: ["nature", "wildlife", "animaux"] },
+      histoire: { label: "Histoire", kw: ["histoire", "history"] },
+      science: { label: "Science", kw: ["science", "technologie"] },
+    },
+  },
+  jeunesse: {
+    label: "Jeunesse",
+    subtypes: {
+      animation: { label: "Dessin animé", kw: ["dessin animé", "animation", "cartoon", "anime"] },
+    },
+  },
+  divertissement: {
+    label: "Divertissement",
+    subtypes: {
+      varieté: { label: "Variété", kw: ["variété", "variety"] },
+      gameshow: { label: "Jeu", kw: ["jeu", "game show", "télé-réalité", "reality"] },
+      humour: { label: "Humour", kw: ["humour", "comedy", "sketch"] },
+    },
+  },
+  musique: {
+    label: "Musique",
+    subtypes: {
+      concert: { label: "Concert", kw: ["concert", "live"] },
+    },
+  },
+};
 
-function classify(categories: string[]): string {
+function classify(categories: string[]): { type: string; subtype: string } {
   const hay = categories.join(" ").toLowerCase();
-  for (const rule of TYPE_RULES) {
-    if (rule.kw.some((k) => hay.includes(k))) return rule.type;
+
+  for (const [typeKey, typeObj] of Object.entries(CLASSIFICATION)) {
+    let found = false;
+    if (typeKey === "film" && (hay.includes("film") || hay.includes("movie") || hay.includes("cinéma") || hay.includes("kino"))) found = true;
+    else if (typeKey === "sport" && hay.includes("sport")) found = true;
+    else if (typeKey === "série" && (hay.includes("série") || hay.includes("series") || hay.includes("feuilleton"))) found = true;
+    else if (typeKey === "info" && (hay.includes("news") || hay.includes("journal") || hay.includes("info"))) found = true;
+    else if (typeKey === "documentaire" && (hay.includes("documentaire") || hay.includes("documentary"))) found = true;
+    else if (typeKey === "jeunesse" && (hay.includes("enfant") || hay.includes("kids") || hay.includes("jeunesse"))) found = true;
+    else if (typeKey === "divertissement" && (hay.includes("divertissement") || hay.includes("entertainment"))) found = true;
+    else if (typeKey === "musique" && (hay.includes("musique") || hay.includes("music"))) found = true;
+
+    if (found) {
+      for (const [subtypeKey, subtypeObj] of Object.entries(typeObj.subtypes)) {
+        if (subtypeObj.kw.some((k) => hay.includes(k))) {
+          return { type: typeKey, subtype: subtypeKey };
+        }
+      }
+      return { type: typeKey, subtype: "autre" };
+    }
   }
-  return "autre";
+  return { type: "autre", subtype: "autre" };
 }
 
 function xmltvToISO(t: string | undefined): string | null {
@@ -42,7 +124,8 @@ function xmltvToISO(t: string | undefined): string | null {
 }
 
 function asArray<T>(x: T | T[] | undefined): T[] {
-  return x === undefined || x === null ? [] : Array.isArray(x) ? x : [x];
+  if (x === undefined || x === null) return [];
+  return Array.isArray(x) ? x : [x];
 }
 
 function textOf(node: any): string {
@@ -53,6 +136,7 @@ function textOf(node: any): string {
   return "";
 }
 
+// Décodage manuel des entités XML (le parseur a processEntities:false)
 function decode(s: string): string {
   if (!s) return s;
   return s
@@ -68,7 +152,7 @@ function decode(s: string): string {
 type Channel = { id: string; name: string; icon: string | null };
 type Programme = {
   channel: string; channelName: string; title: string; desc: string;
-  start: string | null; stop: string | null; type: string; categories: string[];
+  start: string | null; stop: string | null; type: string; subtype: string; categories: string[];
 };
 
 async function fetchAndParse(countryCode: string) {
@@ -82,7 +166,7 @@ async function fetchAndParse(countryCode: string) {
       const res = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (compatible; TVGuideEU/1.0)" },
       });
-      if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
+      if (!res.ok) { lastErr = new Error(`HTTP ${res.status} sur ${url}`); continue; }
       const buf = Buffer.from(await res.arrayBuffer());
       xml = url.endsWith(".gz") ? gunzipSync(buf).toString("utf-8") : buf.toString("utf-8");
       break;
@@ -90,12 +174,7 @@ async function fetchAndParse(countryCode: string) {
   }
   if (!xml) throw lastErr ?? new Error("Aucune source disponible");
 
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-    attributeNamePrefix: "@_",
-    trimValues: true,
-    processEntities: false,
-  });
+  const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_", trimValues: true, processEntities: false });
   const doc = parser.parse(xml);
   const tv = doc.tv ?? {};
 
@@ -112,6 +191,7 @@ async function fetchAndParse(countryCode: string) {
   for (const p of asArray<any>(tv.programme)) {
     const channel = p["@_channel"];
     const cats = asArray<any>(p.category).map(textOf).map(decode).filter(Boolean);
+    const classification = classify(cats);
     programmes.push({
       channel,
       channelName: channels[channel]?.name || channel,
@@ -119,7 +199,8 @@ async function fetchAndParse(countryCode: string) {
       desc: decode(textOf(asArray<any>(p.desc)[0])) || "",
       start: xmltvToISO(p["@_start"]),
       stop: xmltvToISO(p["@_stop"]),
-      type: classify(cats),
+      type: classification.type,
+      subtype: classification.subtype,
       categories: cats,
     });
   }
@@ -131,7 +212,7 @@ async function fetchAndParse(countryCode: string) {
   };
 }
 
-export default async (req: Request) => {
+export default async (req: Request, _context: Context) => {
   const url = new URL(req.url);
   const country = (url.searchParams.get("country") || "FR").toUpperCase();
 
@@ -148,7 +229,7 @@ export default async (req: Request) => {
       headers: { "Cache-Control": "public, max-age=600, s-maxage=21600, stale-while-revalidate=86400" },
     });
   } catch (e: any) {
-    return Response.json({ error: e?.message || "Erreur EPG" }, { status: 502 });
+    return Response.json({ error: e?.message || "Erreur de récupération EPG" }, { status: 502 });
   }
 };
 
