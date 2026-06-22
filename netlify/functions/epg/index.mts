@@ -105,7 +105,7 @@ const CLASSIFICATION = {
       },
       érotique: { 
         label: "Érotique", 
-        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "erotik", "sensuel", "sensual", "sensuale", "sensual", "pornographique", "pornographic", "porn", "adult", "xxx", "erotic film", "film érotique", "película erótica", "erotischer film", "adult film", "erotico", "erotici", "pornografici", "pornográficas", "eróticas", "adultos", "erotiek", "volwassenen", "porno", "porna", "erotych", "erotyczny", "dorośli", "dla dorosłych", "heiss", "sexy", "adulti", "film érotique"] 
+        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "erotik", "erotikfilm", "erotisches herzkino", "knisternde erotik", "erotismo", "películas eróticas", "cinema erotico", "sessualita", "film erotici", "sensuel", "sensual", "sensuale", "sensual", "pornographique", "pornographic", "porn", "adult", "xxx", "adultos", "erotic film", "film érotique", "película erótica", "erotischer film", "adult film", "erotico", "erotici", "pornografici", "pornográficas", "eróticas", "erotiek", "volwassenen", "porno", "porna", "erotych", "erotyczny", "dorośli", "dla dorosłych", "heiss", "sexy", "adulti", "film érotique"] 
       },
     },
   },
@@ -150,7 +150,7 @@ const CLASSIFICATION = {
       },
       érotique: { 
         label: "Érotique", 
-        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "erotik", "sensuel", "sensual", "sensuale", "pornographique", "pornographic", "adult", "xxx", "erotic series", "adult series", "erotico", "erotici", "pornografici", "pornográficas", "eróticas", "adultos", "erotiek", "volwassenen", "porno", "porna", "erotych", "erotyczny", "dorośli", "dla dorosłych", "heiss", "sexy", "adulti", "film érotique"] 
+        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "erotik", "erotikfilm", "erotisches herzkino", "knisternde erotik", "erotismo", "películas eróticas", "cinema erotico", "sessualita", "film erotici", "sensuel", "sensual", "sensuale", "pornographique", "pornographic", "adult", "xxx", "adultos", "erotic series", "adult series", "erotici", "pornografici", "pornográficas", "eróticas", "erotiek", "volwassenen", "porno", "porna", "erotych", "erotyczny", "dorośli", "dla dorosłych", "heiss", "sexy", "adulti", "film érotique"] 
       },
     },
   },
