@@ -1,9 +1,7 @@
 import type { Context, Config } from "@netlify/functions";
-import { getStore } from "@netlify/blobs";
 import { gunzipSync } from "node:zlib";
 import { XMLParser } from "fast-xml-parser";
 
-// --- Sources epgshare01 (XMLTV gzip, MAJ quotidienne) ---
 const SOURCES: Record<string, { name: string; flag: string; urls: string[] }> = {
   FR: { name: "France", flag: "🇫🇷", urls: ["https://epgshare01.online/epgshare01/epg_ripper_FR1.xml.gz"] },
   UK: { name: "Royaume-Uni", flag: "🇬🇧", urls: ["https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz"] },
@@ -12,20 +10,17 @@ const SOURCES: Record<string, { name: string; flag: string; urls: string[] }> = 
   DE: { name: "Allemagne", flag: "🇩🇪", urls: ["https://epgshare01.online/epgshare01/epg_ripper_DE1.xml.gz"] },
 };
 
-const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
-
-// --- Normalisation des genres XMLTV vers grandes catégories ---
 const TYPE_RULES: { type: string; kw: string[] }[] = [
-  { type: "sport",        kw: ["sport", "football", "soccer", "rugby", "tennis", "basket", "cyclisme", "cycling", "golf", "boxe", "boxing", "formula", "f1", "motogp", "athlétisme", "athletics", "fútbol", "calcio", "fußball"] },
+  { type: "sport",        kw: ["sport", "football", "soccer", "rugby", "tennis", "basket", "cyclisme", "cycling", "golf", "boxe", "boxing", "formula", "f1", "motogp"] },
   { type: "film",         kw: ["film", "movie", "cinéma", "cinema", "long métrage", "feature film", "película", "kino"] },
-  { type: "série",        kw: ["série", "series", "serie", "feuilleton", "soap", "drama series", "sitcom", "telenovela"] },
-  { type: "info",         kw: ["news", "info", "journal", "actualité", "actualités", "noticias", "nachrichten", "telegiornale", "magazine d'information"] },
-  { type: "documentaire", kw: ["documentaire", "documentary", "docu", "reportage", "documental", "dokumentation", "nature", "history", "histoire", "science"] },
-  { type: "jeunesse",     kw: ["jeunesse", "enfant", "kids", "children", "cartoon", "dessin animé", "animation", "anime", "infantil", "kinder"] },
-  { type: "divertissement", kw: ["divertissement", "entertainment", "variété", "variety", "talk", "talk-show", "jeu", "game show", "télé-réalité", "reality", "show", "humour", "comedy", "comédie", "unterhaltung", "espectáculo"] },
-  { type: "musique",      kw: ["musique", "music", "concert", "musik", "música"] },
-  { type: "culture",      kw: ["culture", "art", "théâtre", "theatre", "opéra", "opera", "danse", "dance"] },
-  { type: "cuisine",      kw: ["cuisine", "cooking", "food", "gastronomie", "gastronomy", "cocina"] },
+  { type: "série",        kw: ["série", "series", "serie", "feuilleton", "soap", "drama series", "sitcom"] },
+  { type: "info",         kw: ["news", "info", "journal", "actualité", "actualités", "noticias", "nachrichten"] },
+  { type: "documentaire", kw: ["documentaire", "documentary", "docu", "reportage", "documental", "dokumentation"] },
+  { type: "jeunesse",     kw: ["jeunesse", "enfant", "kids", "children", "cartoon", "dessin animé", "animation"] },
+  { type: "divertissement", kw: ["divertissement", "entertainment", "variété", "variety", "talk", "show", "humour", "comedy"] },
+  { type: "musique",      kw: ["musique", "music", "concert", "musik"] },
+  { type: "culture",      kw: ["culture", "art", "théâtre", "theatre", "opéra", "opera"] },
+  { type: "cuisine",      kw: ["cuisine", "cooking", "food", "gastronomie"] },
 ];
 
 function classify(categories: string[]): string {
@@ -36,7 +31,6 @@ function classify(categories: string[]): string {
   return "autre";
 }
 
-// XMLTV time: 20260622201500 +0200  -> ISO
 function xmltvToISO(t: string | undefined): string | null {
   if (!t) return null;
   const m = t.trim().match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})?\s*([+-]\d{4})?/);
@@ -48,8 +42,7 @@ function xmltvToISO(t: string | undefined): string | null {
 }
 
 function asArray<T>(x: T | T[] | undefined): T[] {
-  if (x === undefined || x === null) return [];
-  return Array.isArray(x) ? x : [x];
+  return x === undefined || x === null ? [] : Array.isArray(x) ? x : [x];
 }
 
 function textOf(node: any): string {
@@ -60,16 +53,22 @@ function textOf(node: any): string {
   return "";
 }
 
+function decode(s: string): string {
+  if (!s) return s;
+  return s
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
+    .replace(/&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 type Channel = { id: string; name: string; icon: string | null };
 type Programme = {
-  channel: string;
-  channelName: string;
-  title: string;
-  desc: string;
-  start: string | null;
-  stop: string | null;
-  type: string;
-  categories: string[];
+  channel: string; channelName: string; title: string; desc: string;
+  start: string | null; stop: string | null; type: string; categories: string[];
 };
 
 async function fetchAndParse(countryCode: string) {
@@ -83,7 +82,7 @@ async function fetchAndParse(countryCode: string) {
       const res = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (compatible; TVGuideEU/1.0)" },
       });
-      if (!res.ok) { lastErr = new Error(`HTTP ${res.status} sur ${url}`); continue; }
+      if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
       const buf = Buffer.from(await res.arrayBuffer());
       xml = url.endsWith(".gz") ? gunzipSync(buf).toString("utf-8") : buf.toString("utf-8");
       break;
@@ -95,9 +94,8 @@ async function fetchAndParse(countryCode: string) {
     ignoreAttributes: false,
     attributeNamePrefix: "@_",
     trimValues: true,
-    numberParseOptions: { leadingZeros: false, hex: false },
+    processEntities: false,
   });
-  parser.entityLimit = 1_000_000;
   const doc = parser.parse(xml);
   const tv = doc.tv ?? {};
 
@@ -105,7 +103,7 @@ async function fetchAndParse(countryCode: string) {
   for (const ch of asArray<any>(tv.channel)) {
     const id = ch["@_id"];
     if (!id) continue;
-    const names = asArray<any>(ch["display-name"]).map(textOf).filter(Boolean);
+    const names = asArray<any>(ch["display-name"]).map(textOf).map(decode).filter(Boolean);
     const icon = ch.icon ? (asArray<any>(ch.icon)[0]?.["@_src"] ?? null) : null;
     channels[id] = { id, name: names[0] || id, icon };
   }
@@ -113,12 +111,12 @@ async function fetchAndParse(countryCode: string) {
   const programmes: Programme[] = [];
   for (const p of asArray<any>(tv.programme)) {
     const channel = p["@_channel"];
-    const cats = asArray<any>(p.category).map(textOf).filter(Boolean);
+    const cats = asArray<any>(p.category).map(textOf).map(decode).filter(Boolean);
     programmes.push({
       channel,
       channelName: channels[channel]?.name || channel,
-      title: textOf(asArray<any>(p.title)[0]) || "Sans titre",
-      desc: textOf(asArray<any>(p.desc)[0]) || "",
+      title: decode(textOf(asArray<any>(p.title)[0])) || "Sans titre",
+      desc: decode(textOf(asArray<any>(p.desc)[0])) || "",
       start: xmltvToISO(p["@_start"]),
       stop: xmltvToISO(p["@_stop"]),
       type: classify(cats),
@@ -127,19 +125,15 @@ async function fetchAndParse(countryCode: string) {
   }
 
   return {
-    country: countryCode,
-    countryName: src.name,
-    flag: src.flag,
+    country: countryCode, countryName: src.name, flag: src.flag,
     generatedAt: new Date().toISOString(),
-    channels: Object.values(channels),
-    programmes,
+    channels: Object.values(channels), programmes,
   };
 }
 
-export default async (req: Request, _context: Context) => {
+export default async (req: Request) => {
   const url = new URL(req.url);
   const country = (url.searchParams.get("country") || "FR").toUpperCase();
-  const force = url.searchParams.get("refresh") === "1";
 
   if (!SOURCES[country]) {
     return Response.json(
@@ -148,39 +142,13 @@ export default async (req: Request, _context: Context) => {
     );
   }
 
-  const store = getStore("epg-cache");
-  const key = `epg-${country}.json`;
-
-  // 1. Tenter le cache Blobs
-  if (!force) {
-    try {
-      const cached = await store.getWithMetadata(key, { type: "json" });
-      if (cached && cached.metadata?.ts && Date.now() - Number(cached.metadata.ts) < CACHE_TTL_MS) {
-        return Response.json(cached.data, {
-          headers: { "X-Cache": "HIT", "Cache-Control": "public, max-age=600" },
-        });
-      }
-    } catch { /* pas de cache, on continue */ }
-  }
-
-  // 2. Récupérer + parser
   try {
     const data = await fetchAndParse(country);
-    try {
-      await store.setJSON(key, data, { metadata: { ts: Date.now() } });
-    } catch { /* écriture cache best-effort */ }
     return Response.json(data, {
-      headers: { "X-Cache": "MISS", "Cache-Control": "public, max-age=600" },
+      headers: { "Cache-Control": "public, max-age=600, s-maxage=21600, stale-while-revalidate=86400" },
     });
   } catch (e: any) {
-    // 3. Repli sur cache périmé si dispo
-    try {
-      const stale = await store.get(key, { type: "json" });
-      if (stale) {
-        return Response.json(stale, { headers: { "X-Cache": "STALE" } });
-      }
-    } catch { /* rien */ }
-    return Response.json({ error: e?.message || "Erreur de récupération EPG" }, { status: 502 });
+    return Response.json({ error: e?.message || "Erreur EPG" }, { status: 502 });
   }
 };
 
