@@ -1,9 +1,10 @@
 [build]
-  command = "npm run build"
+  publish = "public"
   functions = "netlify/functions"
-  publish = "dist"
 
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+[functions]
+  node_bundler = "esbuild"
+
+[functions."epg"]
+  # 7 days of data per country can be large; give it room
+  included_files = []
