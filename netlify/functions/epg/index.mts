@@ -18,82 +18,82 @@ const CLASSIFICATION = {
   sport: {
     label: "Sport",
     subtypes: {
-      football: { label: "Football", kw: ["football", "soccer", "fútbol"] },
+      football: { label: "Football", kw: ["football", "soccer", "fútbol", "calcio", "futebol", "voetbal", "piłka nożna", "pied"] },
       rugby: { label: "Rugby", kw: ["rugby"] },
       tennis: { label: "Tennis", kw: ["tennis"] },
-      basket: { label: "Basket", kw: ["basket", "basketball", "nba"] },
-      cyclisme: { label: "Cyclisme", kw: ["cyclisme", "cycling", "tour"] },
+      basket: { label: "Basket", kw: ["basket", "basketball", "baloncesto", "pallacanestro", "basketbal"] },
+      cyclisme: { label: "Cyclisme", kw: ["cycling", "cyclisme", "ciclismo", "radsport", "wielokolarstwo", "tour", "vuelta", "giro"] },
       golf: { label: "Golf", kw: ["golf"] },
-      boxe: { label: "Boxe", kw: ["boxe", "boxing"] },
-      f1: { label: "F1", kw: ["formula", "f1"] },
-      motogp: { label: "MotoGP", kw: ["motogp"] },
-      athlétisme: { label: "Athlétisme", kw: ["athlétisme", "athletics"] },
+      boxe: { label: "Boxe", kw: ["boxing", "boxe", "boxeo", "pugilato", "boksen", "boks"] },
+      f1: { label: "F1", kw: ["formula", "formule 1", "fórmula 1", "formula 1", "grand prix"] },
+      motogp: { label: "MotoGP", kw: ["motogp", "moto gp", "motorcycle"] },
+      athlétisme: { label: "Athlétisme", kw: ["athletics", "track and field", "atletismo", "atletica", "leichtathletik", "lekkoatletyka"] },
     },
   },
   film: {
     label: "Films",
     subtypes: {
-      action: { label: "Action", kw: ["action", "aventure", "western"] },
-      comédie: { label: "Comédie", kw: ["comédie", "comedy", "musical"] },
-      drame: { label: "Drame", kw: ["drame", "drama", "romance", "amour"] },
-      thriller: { label: "Thriller", kw: ["thriller", "suspense", "crime", "policier", "criminalité"] },
-      horreur: { label: "Horreur", kw: ["horreur", "horror"] },
-      scifi: { label: "Sci-Fi & Fantastique", kw: ["science-fiction", "sci-fi", "fantasy", "fantastique", "surnaturel"] },
-      historique: { label: "Historique", kw: ["historique", "historical", "period", "guerre", "war", "bataille"] },
-      animation: { label: "Animation", kw: ["animation", "animated", "anime", "dessin animé"] },
-      famille: { label: "Famille", kw: ["famille", "family", "kids", "enfant", "jeunesse"] },
-      documentaire: { label: "Documentaire", kw: ["documentaire", "documentary", "docu"] },
-      érotique: { label: "Érotique", kw: ["érotique", "erotic", "pornographique", "porn", "adult", "xxx", "sensuel"] },
+      action: { label: "Action", kw: ["action", "actionfilm", "película de acción", "film d'azione", "actionfilm", "film akcji", "aventure", "adventure", "aventura", "avventura", "western", "oeste"] },
+      comédie: { label: "Comédie", kw: ["comedy", "comédie", "comedia", "commedia", "komödie", "komedia", "humour", "humor", "humorismo", "sketch"] },
+      drame: { label: "Drame", kw: ["drama", "drame", "drama", "dramma", "drama", "dramat", "romance", "amour", "romantic", "romance", "amor", "amore"] },
+      thriller: { label: "Thriller", kw: ["thriller", "suspense", "thriller", "thriller", "thriller", "thriller", "mystery", "mystère", "misterio", "mistero", "mystery"] },
+      horreur: { label: "Horreur", kw: ["horror", "horreur", "horror", "orrore", "horror", "horror", "dark", "scary", "macabre"] },
+      scifi: { label: "Sci-Fi & Fantastique", kw: ["sci-fi", "science-fiction", "science fiction", "ciencia ficción", "fantascienza", "science-fiction", "science fiction", "fantasy", "fantastique", "fantastical", "fantasia", "surnaturel", "supernatural", "paranormal"] },
+      historique: { label: "Historique", kw: ["historical", "history", "historique", "histórico", "storico", "historisch", "historyczny", "période", "period", "época", "guerra", "war", "bataille", "battle", "battaglia"] },
+      animation: { label: "Animation", kw: ["animation", "animated", "animé", "animation", "animación", "animazione", "animation", "animacja", "cartoon", "dessin animé", "anime"] },
+      famille: { label: "Famille", kw: ["family", "family film", "película familiar", "film per famiglie", "familienfilm", "film familijny", "kids", "children", "jeunesse", "enfant", "niños", "bambini", "kinder"] },
+      documentaire: { label: "Documentaire", kw: ["documentary", "documentaire", "documental", "documentario", "dokumentation", "dokument", "docu", "reportage", "reportaje", "reportage"] },
+      érotique: { label: "Érotique", kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "sensuel", "sensual", "sensuale", "sensual", "pornographique", "pornographic", "porn", "adult", "xxx"] },
     },
   },
   série: {
     label: "Séries",
     subtypes: {
-      action: { label: "Action", kw: ["action", "aventure"] },
-      comédie: { label: "Comédie", kw: ["comédie", "comedy", "sitcom"] },
-      drame: { label: "Drame", kw: ["drame", "drama", "romance", "amour", "médical", "medical"] },
-      thriller: { label: "Thriller", kw: ["thriller", "suspense", "crime", "mystery", "policier"] },
-      scifi: { label: "Sci-Fi & Fantastique", kw: ["science-fiction", "sci-fi", "fantasy", "fantastique", "surnaturel", "supernatural"] },
-      horreur: { label: "Horreur", kw: ["horreur", "horror", "dark"] },
-      animation: { label: "Animation", kw: ["animation", "animated", "anime"] },
-      famille: { label: "Famille", kw: ["famille", "family", "kids", "jeunesse"] },
-      historique: { label: "Historique", kw: ["historique", "historical", "period"] },
-      érotique: { label: "Érotique", kw: ["érotique", "erotic", "pornographique", "porn", "adult", "xxx"] },
+      action: { label: "Action", kw: ["action", "actionfilm", "película de acción", "film d'azione", "actionfilm", "film akcji", "aventure", "adventure", "aventura", "avventura"] },
+      comédie: { label: "Comédie", kw: ["comedy", "comédie", "comedia", "commedia", "komödie", "komedia", "sitcom", "humour", "humor", "sketch"] },
+      drame: { label: "Drame", kw: ["drama", "drame", "drama", "dramma", "drama", "dramat", "romance", "amour", "romantic", "romance", "amor", "amore", "médical", "medical", "medical", "doctor", "hospital"] },
+      thriller: { label: "Thriller", kw: ["thriller", "suspense", "thriller", "thriller", "thriller", "thriller", "mystery", "mystère", "misterio", "mistero", "crime", "crimen", "crimine", "kriminal"] },
+      scifi: { label: "Sci-Fi & Fantastique", kw: ["sci-fi", "science-fiction", "science fiction", "ciencia ficción", "fantascienza", "science-fiction", "fantasy", "fantastique", "fantastical", "fantasia", "surnaturel", "supernatural", "paranormal", "paranormale"] },
+      horreur: { label: "Horreur", kw: ["horror", "horreur", "horror", "orrore", "horror", "horror", "dark", "scary", "macabre", "terreur"] },
+      animation: { label: "Animation", kw: ["animation", "animated", "animé", "animation", "animación", "animazione", "animation", "animacja", "cartoon", "anime"] },
+      famille: { label: "Famille", kw: ["family", "family film", "película familiar", "film per famiglie", "familienfilm", "film familijny", "kids", "children", "jeunesse", "enfant"] },
+      historique: { label: "Historique", kw: ["historical", "history", "historique", "histórico", "storico", "historisch", "historyczny", "période", "period", "época"] },
+      érotique: { label: "Érotique", kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "sensuel", "sensual", "pornographique", "pornographic", "adult", "xxx"] },
     },
   },
   info: {
     label: "Info",
     subtypes: {
-      journal: { label: "Journal", kw: ["journal", "news", "actualité"] },
-      magazine: { label: "Magazine", kw: ["magazine", "reportage", "investigation"] },
+      journal: { label: "Journal", kw: ["journal", "news", "journal télévisé", "noticiario", "giornale televisivo", "nachichten", "wiadomości", "actualité", "actualités", "noticias", "notizie"] },
+      magazine: { label: "Magazine", kw: ["magazine", "magazine", "magazine", "magazine", "magazin", "magazyn", "reportage", "reportaje", "reportage", "investigation"] },
     },
   },
   documentaire: {
     label: "Documentaire",
     subtypes: {
-      nature: { label: "Nature", kw: ["nature", "wildlife", "animaux"] },
-      histoire: { label: "Histoire", kw: ["histoire", "history"] },
-      science: { label: "Science", kw: ["science", "technologie"] },
+      nature: { label: "Nature", kw: ["nature", "wildlife", "nature", "natura", "natur", "przyroda", "animaux", "animals", "animales", "animali", "tiere"] },
+      histoire: { label: "Histoire", kw: ["history", "histoire", "historia", "storia", "geschichte", "historia"] },
+      science: { label: "Science", kw: ["science", "science", "ciencia", "scienza", "wissenschaft", "nauka", "technologie", "technology", "tecnología", "tecnologia"] },
     },
   },
   jeunesse: {
     label: "Jeunesse",
     subtypes: {
-      animation: { label: "Dessin animé", kw: ["dessin animé", "animation", "cartoon", "anime"] },
+      animation: { label: "Dessin animé", kw: ["dessin animé", "animation", "cartoon", "anime", "animación", "animazione", "animation", "animacja", "kids", "children", "enfants"] },
     },
   },
   divertissement: {
     label: "Divertissement",
     subtypes: {
-      varieté: { label: "Variété", kw: ["variété", "variety"] },
-      gameshow: { label: "Jeu", kw: ["jeu", "game show", "télé-réalité", "reality"] },
-      humour: { label: "Humour", kw: ["humour", "comedy", "sketch"] },
+      varieté: { label: "Variété", kw: ["variety", "variété", "variedad", "varietà", "varietät", "różnorodność", "show", "spectacle"] },
+      gameshow: { label: "Jeu", kw: ["game show", "game", "jeu", "juego", "gioco", "spiel", "gra", "télé-réalité", "reality", "realidad", "reality", "realtà", "wirklichkeit", "rzeczywistość"] },
+      humour: { label: "Humour", kw: ["humor", "humour", "humor", "umorismo", "humor", "humor", "comedy", "comédie", "sketch"] },
     },
   },
   musique: {
     label: "Musique",
     subtypes: {
-      concert: { label: "Concert", kw: ["concert", "live"] },
+      concert: { label: "Concert", kw: ["concert", "live", "concierto", "concerto", "konzert", "koncert", "música", "music"] },
     },
   },
 };
@@ -103,14 +103,14 @@ function classify(categories: string[]): { type: string; subtype: string } {
 
   for (const [typeKey, typeObj] of Object.entries(CLASSIFICATION)) {
     let found = false;
-    if (typeKey === "film" && (hay.includes("film") || hay.includes("movie") || hay.includes("cinéma") || hay.includes("kino"))) found = true;
+    if (typeKey === "film" && (hay.includes("film") || hay.includes("movie") || hay.includes("película") || hay.includes("pellicola") || hay.includes("kino"))) found = true;
     else if (typeKey === "sport" && hay.includes("sport")) found = true;
-    else if (typeKey === "série" && (hay.includes("série") || hay.includes("series") || hay.includes("feuilleton"))) found = true;
-    else if (typeKey === "info" && (hay.includes("news") || hay.includes("journal") || hay.includes("info"))) found = true;
-    else if (typeKey === "documentaire" && (hay.includes("documentaire") || hay.includes("documentary"))) found = true;
-    else if (typeKey === "jeunesse" && (hay.includes("enfant") || hay.includes("kids") || hay.includes("jeunesse"))) found = true;
-    else if (typeKey === "divertissement" && (hay.includes("divertissement") || hay.includes("entertainment"))) found = true;
-    else if (typeKey === "musique" && (hay.includes("musique") || hay.includes("music"))) found = true;
+    else if (typeKey === "série" && (hay.includes("série") || hay.includes("series") || hay.includes("serie") || hay.includes("feuilleton") || hay.includes("telenovela"))) found = true;
+    else if (typeKey === "info" && (hay.includes("news") || hay.includes("journal") || hay.includes("info") || hay.includes("noticias") || hay.includes("notizie"))) found = true;
+    else if (typeKey === "documentaire" && (hay.includes("documentaire") || hay.includes("documentary") || hay.includes("documental") || hay.includes("dokumentation"))) found = true;
+    else if (typeKey === "jeunesse" && (hay.includes("enfant") || hay.includes("kids") || hay.includes("jeunesse") || hay.includes("niños") || hay.includes("bambini") || hay.includes("kinder"))) found = true;
+    else if (typeKey === "divertissement" && (hay.includes("divertissement") || hay.includes("entertainment") || hay.includes("unterhaltung"))) found = true;
+    else if (typeKey === "musique" && (hay.includes("musique") || hay.includes("music") || hay.includes("música"))) found = true;
 
     if (found) {
       for (const [subtypeKey, subtypeObj] of Object.entries(typeObj.subtypes)) {
