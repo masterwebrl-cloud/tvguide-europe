@@ -3,11 +3,15 @@ import { gunzipSync } from "node:zlib";
 import { XMLParser } from "fast-xml-parser";
 
 const SOURCES: Record<string, { name: string; flag: string; urls: string[] }> = {
-  FR: { name: "France", flag: "🇫🇷", urls: ["https://epgshare01.online/epgshare01/epg_ripper_FR1.xml.gz"] },
-  UK: { name: "Royaume-Uni", flag: "🇬🇧", urls: ["https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz"] },
-  ES: { name: "Espagne", flag: "🇪🇸", urls: ["https://epgshare01.online/epgshare01/epg_ripper_ES1.xml.gz"] },
-  IT: { name: "Italie", flag: "🇮🇹", urls: ["https://epgshare01.online/epgshare01/epg_ripper_IT1.xml.gz"] },
-  DE: { name: "Allemagne", flag: "🇩🇪", urls: ["https://epgshare01.online/epgshare01/epg_ripper_DE1.xml.gz"] },
+  FR: { name: "France", flag: "🇫🇷", urls: ["https://iptv-epg.org/files/epg-fr.xml.gz"] },
+  GB: { name: "Royaume-Uni", flag: "🇬🇧", urls: ["https://iptv-epg.org/files/epg-gb.xml.gz"] },
+  ES: { name: "Espagne", flag: "🇪🇸", urls: ["https://iptv-epg.org/files/epg-es.xml.gz"] },
+  IT: { name: "Italie", flag: "🇮🇹", urls: ["https://iptv-epg.org/files/epg-it.xml.gz"] },
+  DE: { name: "Allemagne", flag: "🇩🇪", urls: ["https://iptv-epg.org/files/epg-de.xml.gz"] },
+  BE: { name: "Belgique", flag: "🇧🇪", urls: ["https://iptv-epg.org/files/epg-be.xml.gz"] },
+  CH: { name: "Suisse", flag: "🇨🇭", urls: ["https://iptv-epg.org/files/epg-ch.xml.gz"] },
+  PL: { name: "Pologne", flag: "🇵🇱", urls: ["https://iptv-epg.org/files/epg-pl.xml.gz"] },
+  NL: { name: "Pays-Bas", flag: "🇳🇱", urls: ["https://iptv-epg.org/files/epg-nl.xml.gz"] },
 };
 
 const CLASSIFICATION = {
