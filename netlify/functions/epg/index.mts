@@ -95,7 +95,9 @@ async function fetchAndParse(countryCode: string) {
     ignoreAttributes: false,
     attributeNamePrefix: "@_",
     trimValues: true,
+    numberParseOptions: { leadingZeros: false, hex: false },
   });
+  parser.entityLimit = 1_000_000;
   const doc = parser.parse(xml);
   const tv = doc.tv ?? {};
 
