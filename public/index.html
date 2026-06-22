@@ -34,16 +34,12 @@
     min-height: 100vh;
   }
   .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 80px; }
-
   header {
     background: linear-gradient(180deg, var(--ink-2), var(--ink));
     border-bottom: 1px solid var(--line);
     padding: 28px 0 24px;
   }
-  header .wrap { padding-bottom: 0; }
-  .brand {
-    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
-  }
+  .brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   .brand h1 {
     font-family: "Archivo", "Inter", sans-serif;
     font-size: clamp(34px, 6vw, 58px);
@@ -53,10 +49,7 @@
     text-transform: uppercase;
   }
   .brand h1 .dot { color: var(--gold); }
-  .brand .tag {
-    color: var(--muted); font-size: 14px; letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
+  .brand .tag { color: var(--muted); font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; }
   .bars { display: flex; height: 6px; margin-top: 18px; border-radius: 3px; overflow: hidden; }
   .bars span { flex: 1; }
 
@@ -64,7 +57,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr auto;
     gap: 14px;
-    margin: 26px 0 18px;
+    margin: 26px 0 12px;
     align-items: end;
   }
   .field label {
@@ -95,25 +88,15 @@
   .now-toggle.active .led { background: var(--live); box-shadow: 0 0 8px var(--live); animation: pulse 1.6s infinite; }
   @keyframes pulse { 50% { opacity: 0.4; } }
 
-  .types-container { margin-bottom: 22px; }
-  .types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-  .type-btn {
-    background: var(--panel); border: 1px solid var(--line);
-    color: var(--muted); padding: 7px 13px; border-radius: 20px;
-    font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
-    transition: all 0.12s; user-select: none;
-  }
-  .type-btn .swatch { width: 10px; height: 10px; border-radius: 50%; }
-  .type-btn.active { color: var(--ink); font-weight: 600; border-color: transparent; }
-  .type-btn:hover { border-color: var(--gold); }
-  .subtypes { display: flex; flex-wrap: wrap; gap: 6px; margin-left: 16px; padding-left: 10px; border-left: 2px solid var(--line); max-height: 200px; overflow-y: auto; }
-  .subtype-btn {
+  /* Chips container */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; min-height: 28px; }
+  .chip {
     background: var(--panel-2); border: 1px solid var(--line);
-    color: var(--muted); padding: 5px 10px; border-radius: 16px;
+    color: var(--muted); padding: 5px 11px; border-radius: 20px;
     font-size: 12px; cursor: pointer; transition: all 0.12s; user-select: none; white-space: nowrap;
   }
-  .subtype-btn.active { color: var(--ink); font-weight: 600; border-color: transparent; }
-  .subtype-btn:hover { border-color: var(--gold); }
+  .chip.active { color: var(--ink); font-weight: 600; border-color: transparent; }
+  .chip:hover { border-color: var(--gold); }
 
   .meta { color: var(--muted); font-size: 13px; margin-bottom: 18px; display: flex; gap: 16px; flex-wrap: wrap; }
   .meta strong { color: var(--text); }
@@ -168,7 +151,6 @@
   @media (max-width: 720px) {
     .controls { grid-template-columns: 1fr; }
     .prog { grid-template-columns: 56px 6px 1fr; gap: 9px; padding: 10px; }
-    .subtypes { max-height: 150px; }
   }
   @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; }
@@ -189,17 +171,17 @@
 <div class="wrap">
   <div class="controls">
     <div class="field">
-      <label for="country">Pays</label>
-      <select id="country">
-        <option value="FR">🇫🇷 France</option>
-        <option value="UK">🇬🇧 Royaume-Uni</option>
-        <option value="ES">🇪🇸 Espagne</option>
-        <option value="IT">🇮🇹 Italie</option>
-        <option value="DE">🇩🇪 Allemagne</option>
-        <option value="BE">🇧🇪 Belgique</option>
-        <option value="CH">🇨🇭 Suisse</option>
-        <option value="PL">🇵🇱 Pologne</option>
-        <option value="RU">🇷🇺 Russie</option>
+      <label for="typeSelect">Type de programme</label>
+      <select id="typeSelect">
+        <option value="">Tous</option>
+        <option value="sport">Sport</option>
+        <option value="film">Films</option>
+        <option value="série">Séries</option>
+        <option value="info">Info</option>
+        <option value="documentaire">Documentaire</option>
+        <option value="jeunesse">Jeunesse</option>
+        <option value="divertissement">Divertissement</option>
+        <option value="musique">Musique</option>
       </select>
     </div>
     <div class="field">
@@ -214,7 +196,18 @@
     </div>
   </div>
 
-  <div class="types-container" id="typesContainer"></div>
+  <div class="field">
+    <label for="countrySelect">Pays</label>
+    <select id="countrySelect">
+      <option value="FR">🇫🇷 France</option>
+      <option value="UK">🇬🇧 Royaume-Uni</option>
+      <option value="ES">🇪🇸 Espagne</option>
+      <option value="IT">🇮🇹 Italie</option>
+      <option value="DE">🇩🇪 Allemagne</option>
+    </select>
+  </div>
+
+  <div class="chips" id="chips"></div>
 
   <div class="meta" id="meta"></div>
 
@@ -224,22 +217,10 @@
 </div>
 
 <script>
-const TYPES = {
-  sport: { label: "Sport", color: "var(--t-sport)" },
-  film: { label: "Films", color: "var(--t-film)" },
-  série: { label: "Séries", color: "var(--t-serie)" },
-  info: { label: "Info", color: "var(--t-info)" },
-  documentaire: { label: "Documentaire", color: "var(--t-documentaire)" },
-  jeunesse: { label: "Jeunesse", color: "var(--t-jeunesse)" },
-  divertissement: { label: "Divertissement", color: "var(--t-divertissement)" },
-  musique: { label: "Musique", color: "var(--t-musique)" },
-  autre: { label: "Autre", color: "var(--t-autre)" },
-};
-
 const SUBTYPES = {
   sport: { football: "Football", rugby: "Rugby", tennis: "Tennis", basket: "Basket", cyclisme: "Cyclisme", golf: "Golf", boxe: "Boxe", f1: "F1", motogp: "MotoGP", athlétisme: "Athlétisme" },
-  film: { action: "Action", aventure: "Aventure", animation: "Animation", comédie: "Comédie", drame: "Drame", thriller: "Thriller", horreur: "Horreur", policier: "Policier", romance: "Romance", scifi: "Sci-fi", western: "Western", fantastique: "Fantastique", historique: "Historique", guerre: "Guerre", musical: "Musical", famille: "Famille", documentaire: "Documentaire", pornographique: "Pornographique" },
-  série: { action: "Action", aventure: "Aventure", animation: "Animation", comédie: "Comédie", drame: "Drame", thriller: "Thriller", scifi: "Sci-fi", policier: "Policier", romance: "Romance", fantastique: "Fantastique", historique: "Historique", horreur: "Horreur", médical: "Médical", famille: "Famille", surnaturel: "Surnaturel", pornographique: "Pornographique" },
+  film: { action: "Action", comédie: "Comédie", drame: "Drame", thriller: "Thriller", horreur: "Horreur", scifi: "Sci-Fi & Fantastique", historique: "Historique", animation: "Animation", famille: "Famille", documentaire: "Documentaire", érotique: "Érotique" },
+  série: { action: "Action", comédie: "Comédie", drame: "Drame", thriller: "Thriller", scifi: "Sci-Fi & Fantastique", horreur: "Horreur", animation: "Animation", famille: "Famille", historique: "Historique", érotique: "Érotique" },
   info: { journal: "Journal", magazine: "Magazine" },
   documentaire: { nature: "Nature", histoire: "Histoire", science: "Science" },
   jeunesse: { animation: "Dessin animé" },
@@ -247,85 +228,70 @@ const SUBTYPES = {
   musique: { concert: "Concert" },
 };
 
+const TYPES = {
+  sport: "var(--t-sport)",
+  film: "var(--t-film)",
+  série: "var(--t-serie)",
+  info: "var(--t-info)",
+  documentaire: "var(--t-documentaire)",
+  jeunesse: "var(--t-jeunesse)",
+  divertissement: "var(--t-divertissement)",
+  musique: "var(--t-musique)",
+};
+
 const state = {
   data: null,
-  activeTypes: new Set(),
+  activeType: null,
   activeSubtypes: new Set(),
   search: "",
   nowOnly: false,
-  loading: false,
-  expandedType: null,
+  country: "FR",
 };
 
-document.getElementById("bars").innerHTML = Object.entries(TYPES).slice(0,8)
-  .map(([k,v]) => `<span style="background:${v.color}"></span>`).join("");
+document.getElementById("bars").innerHTML = Object.values(TYPES).slice(0,8)
+  .map(c => `<span style="background:${c}"></span>`).join("");
 
-const typesEl = document.getElementById("typesContainer");
-let typesHtml = `<div class="types" id="typesList"></div><div id="subtypesList"></div>`;
-typesEl.innerHTML = typesHtml;
-const typesList = document.getElementById("typesList");
+const typeSelect = document.getElementById("typeSelect");
+const chipsContainer = document.getElementById("chips");
 
-for (const [typeKey, typeObj] of Object.entries(TYPES)) {
-  const btn = document.createElement("div");
-  btn.className = "type-btn";
-  btn.dataset.type = typeKey;
-  const col = getComputedStyle(document.documentElement).getPropertyValue(typeObj.color.substring(4, typeObj.color.length-1)).trim();
-  btn.innerHTML = `<span class="swatch" style="background:${col}"></span>${typeObj.label}`;
-  btn.onclick = () => {
-    if (state.activeTypes.has(typeKey)) {
-      state.activeTypes.delete(typeKey);
-      state.activeSubtypes.forEach(st => { if (st.startsWith(typeKey+":")) state.activeSubtypes.delete(st); });
-      btn.classList.remove("active");
-      btn.style.background = "";
-      state.expandedType = null;
-    } else {
-      state.activeTypes.add(typeKey);
-      btn.classList.add("active");
-      btn.style.background = col;
-      state.expandedType = typeKey;
-    }
-    updateSubtypesList();
-    render();
-  };
-  typesList.appendChild(btn);
-}
+typeSelect.onchange = (e) => {
+  state.activeType = e.target.value || null;
+  state.activeSubtypes.clear();
+  updateChips();
+  render();
+};
 
-function updateSubtypesList() {
-  const subtypesContainer = document.getElementById("subtypesList");
-  if (!state.expandedType || !SUBTYPES[state.expandedType]) {
-    subtypesContainer.innerHTML = "";
-    return;
-  }
-  const subtypes = SUBTYPES[state.expandedType];
-  let html = `<div class="subtypes">`;
+function updateChips() {
+  chipsContainer.innerHTML = "";
+  if (!state.activeType || !SUBTYPES[state.activeType]) return;
+  
+  const subtypes = SUBTYPES[state.activeType];
+  const col = getComputedStyle(document.documentElement).getPropertyValue(TYPES[state.activeType]).trim();
+  
   for (const [subKey, subLabel] of Object.entries(subtypes)) {
-    const stKey = `${state.expandedType}:${subKey}`;
-    const isActive = state.activeSubtypes.has(stKey);
-    html += `<div class="subtype-btn ${isActive ? "active" : ""}" data-subtype="${stKey}" style="${isActive ? `background:${getComputedStyle(document.documentElement).getPropertyValue(TYPES[state.expandedType].color.substring(4, TYPES[state.expandedType].color.length-1)).trim()};` : ""}">${subLabel}</div>`;
-  }
-  html += `</div>`;
-  subtypesContainer.innerHTML = html;
-  subtypesContainer.querySelectorAll(".subtype-btn").forEach(btn => {
-    btn.onclick = () => {
-      const stKey = btn.dataset.subtype;
-      if (state.activeSubtypes.has(stKey)) {
-        state.activeSubtypes.delete(stKey);
-        btn.classList.remove("active");
-        btn.style.background = "";
+    const chip = document.createElement("div");
+    chip.className = `chip ${state.activeSubtypes.has(subKey) ? "active" : ""}`;
+    chip.textContent = subLabel;
+    if (state.activeSubtypes.has(subKey)) chip.style.background = col;
+    chip.onclick = () => {
+      if (state.activeSubtypes.has(subKey)) {
+        state.activeSubtypes.delete(subKey);
+        chip.classList.remove("active");
+        chip.style.background = "";
       } else {
-        state.activeSubtypes.add(stKey);
-        btn.classList.add("active");
-        const col = getComputedStyle(document.documentElement).getPropertyValue(TYPES[state.expandedType].color.substring(4, TYPES[state.expandedType].color.length-1)).trim();
-        btn.style.background = col;
+        state.activeSubtypes.add(subKey);
+        chip.classList.add("active");
+        chip.style.background = col;
       }
       render();
     };
-  });
+    chipsContainer.appendChild(chip);
+  }
 }
 
 const typeColor = (type) => {
-  const css = TYPES[type]?.color || TYPES.autre.color;
-  return getComputedStyle(document.documentElement).getPropertyValue(css.substring(4, css.length-1)).trim();
+  const css = TYPES[type] || TYPES.autre;
+  return getComputedStyle(document.documentElement).getPropertyValue(css).trim();
 };
 
 const fmtTime = (iso) => {
@@ -339,9 +305,8 @@ const isLive = (p) => {
 };
 
 async function load(country, force) {
-  state.loading = true;
   document.getElementById("content").innerHTML =
-    `<div class="state"><div class="spinner"></div>Chargement du programme ${country}…</div>`;
+    `<div class="state"><div class="spinner"></div>Chargement du programme…</div>`;
   try {
     const res = await fetch(`/api/epg?country=${country}${force ? "&refresh=1" : ""}`);
     if (!res.ok) {
@@ -349,10 +314,8 @@ async function load(country, force) {
       throw new Error(err.error || `Erreur ${res.status}`);
     }
     state.data = await res.json();
-    state.loading = false;
     render();
   } catch (e) {
-    state.loading = false;
     document.getElementById("content").innerHTML =
       `<div class="state">Impossible de charger le programme.<br><span style="font-size:13px">${e.message}</span><br>
        <button onclick="load('${country}', true)">Réessayer</button></div>`;
@@ -366,11 +329,8 @@ function render() {
   const q = state.search.toLowerCase().trim();
 
   let progs = programmes.filter(p => {
-    if (state.activeTypes.size) {
-      const hasType = state.activeTypes.has(p.type);
-      const hasSubtype = state.activeSubtypes.size === 0 || state.activeSubtypes.has(`${p.type}:${p.subtype}`);
-      if (!(hasType && hasSubtype)) return false;
-    }
+    if (state.activeType && p.type !== state.activeType) return false;
+    if (state.activeSubtypes.size && !state.activeSubtypes.has(p.subtype)) return false;
     if (state.nowOnly && !isLive(p)) return false;
     if (q && !(p.title.toLowerCase().includes(q) || p.channelName.toLowerCase().includes(q))) return false;
     if (!state.nowOnly && p.stop && new Date(p.stop).getTime() < now) return false;
@@ -380,12 +340,12 @@ function render() {
   document.getElementById("meta").innerHTML =
     `<span>${state.data.flag} <strong>${state.data.countryName}</strong></span>
      <span><strong>${channels.length}</strong> chaînes</span>
-     <span><strong>${progs.length}</strong> programmes affichés</span>
+     <span><strong>${progs.length}</strong> programmes</span>
      <span><strong>${programmes.filter(isLive).length}</strong> en direct</span>`;
 
   if (!progs.length) {
     document.getElementById("content").innerHTML =
-      `<div class="state">Aucun programme ne correspond. Élargissez les filtres ou changez de pays.</div>`;
+      `<div class="state">Aucun programme ne correspond.</div>`;
     return;
   }
 
@@ -403,7 +363,7 @@ function render() {
       ? `<img class="logo" src="${ch.icon}" alt="" onerror="this.outerHTML='<div class=&quot;logo-fallback&quot;>${(ch.name[0]||'?')}</div>';" />`
       : `<div class="logo-fallback">${(ch.name[0]||"?").toUpperCase()}</div>`;
     html += `<div class="channel-block">
-      <div class="channel-head">${logo}<h2>${esc(ch.name)}</h2><span class="count">${byChannel[chId].length} prog.</span></div>`;
+      <div class="channel-head">${logo}<h2>${esc(ch.name)}</h2><span class="count">${byChannel[chId].length}</span></div>`;
     for (const p of list) {
       const live = isLive(p);
       const col = typeColor(p.type);
@@ -425,21 +385,14 @@ function render() {
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
-document.getElementById("country").onchange = (e) => load(e.target.value);
-let st;
-document.getElementById("search").oninput = (e) => {
-  state.search = e.target.value;
-  clearTimeout(st); st = setTimeout(render, 180);
-};
+document.getElementById("countrySelect").onchange = (e) => { state.country = e.target.value; load(state.country); };
+document.getElementById("search").oninput = (e) => { state.search = e.target.value; setTimeout(render, 180); };
 const nowToggle = document.getElementById("nowToggle");
-const toggleNow = () => {
+nowToggle.onclick = () => {
   state.nowOnly = !state.nowOnly;
   nowToggle.classList.toggle("active", state.nowOnly);
-  nowToggle.setAttribute("aria-pressed", state.nowOnly);
   render();
 };
-nowToggle.onclick = toggleNow;
-nowToggle.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleNow(); } };
 
 load("FR");
 </script>
