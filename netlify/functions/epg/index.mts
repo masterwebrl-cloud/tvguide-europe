@@ -1,250 +1,54 @@
-import type { Context, Config } from "@netlify/functions";
+import type { Config } from "@netlify/functions";
 import { gunzipSync } from "node:zlib";
 import { XMLParser } from "fast-xml-parser";
 
-const SOURCES: Record<string, { name: string; flag: string; urls: string[] }> = {
-  FR: { name: "France", flag: "🇫🇷", urls: ["https://iptv-epg.org/files/epg-fr.xml.gz"] },
-  GB: { name: "Royaume-Uni", flag: "🇬🇧", urls: ["https://iptv-epg.org/files/epg-gb.xml.gz"] },
-  ES: { name: "Espagne", flag: "🇪🇸", urls: ["https://iptv-epg.org/files/epg-es.xml.gz"] },
-  IT: { name: "Italie", flag: "🇮🇹", urls: ["https://iptv-epg.org/files/epg-it.xml.gz"] },
-  DE: { name: "Allemagne", flag: "🇩🇪", urls: ["https://iptv-epg.org/files/epg-de.xml.gz"] },
-  BE: { name: "Belgique", flag: "🇧🇪", urls: ["https://iptv-epg.org/files/epg-be.xml.gz"] },
-  CH: { name: "Suisse", flag: "🇨🇭", urls: ["https://iptv-epg.org/files/epg-ch.xml.gz"] },
-  PL: { name: "Pologne", flag: "🇵🇱", urls: ["https://iptv-epg.org/files/epg-pl.xml.gz"] },
-  NL: { name: "Pays-Bas", flag: "🇳🇱", urls: ["https://iptv-epg.org/files/epg-nl.xml.gz"] },
+const COUNTRIES = [
+  "al", "ad", "at", "az", "by", "be", "ba", "bg", "hr", "cy", "cz", "dk", "ee", "fi", "fr", "de", "gr", "hu", "is", "ie", 
+  "it", "xk", "lv", "li", "lt", "lu", "mt", "md", "mc", "me", "nl", "no", "pl", "pt", "ro", "ru", "sm", "rs", "sk", "si", "es", 
+  "se", "ch", "tr", "ua", "gb", "kz", "uz", "tm", "tj", "kg", "ge", "am", "af", "bd", "bt", "in", "lk", "mv", "np", "pk", 
+  "br", "cl", "co", "ec", "gy", "py", "pe", "sr", "uy", "ve", "mx", "bz", "cr", "sv", "gt", "hn", "ni", "pa", "jm", "tt", 
+  "bs", "dm", "pr", "ag", "bb", "gd", "mu", "sc", "au", "fj", "nz", "pf", "sb", "vu"
+];
+
+const COUNTRY_NAMES: Record<string, string> = {
+  fr: "France", gb: "Royaume-Uni", es: "Espagne", it: "Italie", de: "Allemagne", be: "Belgique", ch: "Suisse", pl: "Pologne", nl: "Pays-Bas",
+  at: "Autriche", cz: "Tchéquie", dk: "Danemark", fi: "Finlande", gr: "Grèce", hu: "Hongrie", is: "Islande", ie: "Irlande", pt: "Portugal",
+  ro: "Roumanie", se: "Suède", no: "Norvège", tr: "Turquie", ua: "Ukraine", ru: "Russie", by: "Biélorussie", kz: "Kazakhstan", br: "Brésil",
+  mx: "Mexique", ar: "Argentine", cl: "Chili", co: "Colombie", pe: "Pérou", ve: "Venezuela", in: "Inde", pk: "Pakistan", au: "Australie",
+  nz: "Nouvelle-Zélande", jp: "Japon", kr: "Corée du Sud", cn: "Chine", th: "Thaïlande", my: "Malaisie", sg: "Singapour", id: "Indonésie",
+  ph: "Philippines", vn: "Vietnam", eg: "Égypte", sa: "Arabie Saoudite", ae: "Émirats Arabes", il: "Israël", ng: "Nigéria", za: "Afrique du Sud",
+  ke: "Kenya", us: "États-Unis", ca: "Canada", al: "Albanie", ad: "Andorre", ba: "Bosnie", bg: "Bulgarie", hr: "Croatie", cy: "Chypre",
+  ee: "Estonie", lv: "Lettonie", li: "Liechtenstein", lt: "Lituanie", lu: "Luxembourg", mt: "Malte", md: "Moldavie", mc: "Monaco",
+  me: "Monténégro", sk: "Slovaquie", si: "Slovénie", sm: "Saint-Marin", rs: "Serbie", xk: "Kosovo", az: "Azerbaïdjan", am: "Arménie",
+  ge: "Géorgie", uz: "Ouzbékistan", tm: "Turkménistan", tj: "Tadjikistan", kg: "Kirghizistan", af: "Afghanistan", bd: "Bangladesh",
+  bt: "Bhoutan", lk: "Sri Lanka", mv: "Maldives", np: "Népal", ec: "Équateur", gy: "Guyana", py: "Paraguay", sr: "Suriname", uy: "Uruguay",
+  bz: "Belize", cr: "Costa Rica", sv: "El Salvador", gt: "Guatemala", hn: "Honduras", ni: "Nicaragua", pa: "Panama", jm: "Jamaïque",
+  tt: "Trinité-et-Tobago", bs: "Bahamas", dm: "Dominique", pr: "Porto Rico", ag: "Antigua-et-Barbuda", bb: "Barbade", gd: "Grenade",
+  mu: "Maurice", sc: "Seychelles", fj: "Fidji", pf: "Polynésie française", sb: "Îles Salomon", vu: "Vanuatu"
 };
 
-const CLASSIFICATION = {
-  sport: {
-    label: "Sport",
-    subtypes: {
-      football: { 
-        label: "Football", 
-        kw: ["football", "soccer", "fútbol", "calcio", "futebol", "voetbal", "piłka nożna", "pied", "foot", "championship", "liga", "ligue", "serie a", "premier league", "bundesliga", "laliga", "cup", "coupe", "copa", "pokal", "world cup", "mundial", "mondialе", "euro", "coupe du monde", "fußball", "fußballspiel"] 
-      },
-      rugby: { 
-        label: "Rugby", 
-        kw: ["rugby", "rugby union", "rugby league", "six nations", "top 14", "six naciones", "torneo de las seis naciones"] 
-      },
-      tennis: { 
-        label: "Tennis", 
-        kw: ["tennis", "wimbledon", "french open", "australian open", "us open", "roland garros", "grand slam", "atp", "wta", "tenis"] 
-      },
-      basket: { 
-        label: "Basket", 
-        kw: ["basketball", "basket", "baloncesto", "pallacanestro", "basketbal", "nba", "euroleague", "eurocup", "basketball game", "basketball match"] 
-      },
-      cyclisme: { 
-        label: "Cyclisme", 
-        kw: ["cycling", "cyclisme", "ciclismo", "radsport", "wielokolarstwo", "tour", "tour de france", "vuelta", "giro", "giro d'italia", "tour de france", "cycling race", "vélo", "fahrrad"] 
-      },
-      golf: { 
-        label: "Golf", 
-        kw: ["golf", "golf tournament", "pga", "european tour", "masters", "open championship", "tornwagen golf"] 
-      },
-      boxe: { 
-        label: "Boxe", 
-        kw: ["boxing", "boxe", "boxeo", "pugilato", "boksen", "boks", "boxing match", "combate de boxeo", "incontro di boxe", "boxkampf"] 
-      },
-      f1: { 
-        label: "F1", 
-        kw: ["formula", "formule 1", "fórmula 1", "formula 1", "grand prix", "f1", "formula one", "racing", "course automobile", "gran premio", "formel 1", "motorsport"] 
-      },
-      motogp: { 
-        label: "MotoGP", 
-        kw: ["motogp", "moto gp", "motorcycle", "motorcycle racing", "motociclismo", "motocicleta", "motorrad", "moto", "gran premio motociclismo"] 
-      },
-      athlétisme: { 
-        label: "Athlétisme", 
-        kw: ["athletics", "track and field", "atletismo", "atletica", "leichtathletik", "lekkoatletyka", "olympiad", "olympics", "olympic games", "juegos olímpicos", "jeux olympiques", "spielen"] 
-      },
-    },
-  },
-  film: {
-    label: "Films",
-    subtypes: {
-      action: { 
-        label: "Action", 
-        kw: ["action", "actionfilm", "película de acción", "film d'azione", "actionfilm", "film akcji", "aventure", "adventure", "aventura", "avventura", "western", "oeste", "pellicola d'azione", "actionkino", "film avventura", "aventure film"] 
-      },
-      comédie: { 
-        label: "Comédie", 
-        kw: ["comedy", "comédie", "comedia", "commedia", "komödie", "komedia", "humour", "humor", "humorismo", "sketch", "sitcom", "comedy film", "film comique", "película cómica", "film divertente", "lustige film"] 
-      },
-      drame: { 
-        label: "Drame", 
-        kw: ["drama", "drame", "drama", "dramma", "drama", "dramat", "romance", "amour", "romantic", "romance", "amor", "amore", "dramático", "dramatisch", "film dramático", "film romantico", "liebesfilm", "film d'amour"] 
-      },
-      thriller: { 
-        label: "Thriller", 
-        kw: ["thriller", "suspense", "thriller", "thriller", "thriller", "thriller", "mystery", "mystère", "misterio", "mistero", "mystery", "crime", "crimen", "crimine", "kriminal", "film noir", "noir", "néo-noir", "suspenseful", "spannungsfilm"] 
-      },
-      horreur: { 
-        label: "Horreur", 
-        kw: ["horror", "horreur", "horror", "orrore", "horror", "horror", "dark", "scary", "macabre", "terreur", "películas de terror", "film horror", "horror film", "film di terrore", "horrorfilm", "schreck", "angst"] 
-      },
-      scifi: { 
-        label: "Sci-Fi & Fantastique", 
-        kw: ["sci-fi", "science-fiction", "science fiction", "ciencia ficción", "fantascienza", "science-fiction", "fantasy", "fantastique", "fantastical", "fantasia", "surnaturel", "supernatural", "paranormal", "paranormale", "science-fiction film", "film de science-fiction", "película de ciencia ficción", "fantasyfilm", "zukunftsfilm", "sciencefiction"] 
-      },
-      historique: { 
-        label: "Historique", 
-        kw: ["historical", "history", "historique", "histórico", "storico", "historisch", "historyczny", "période", "period", "época", "guerra", "war", "bataille", "battle", "battaglia", "historical drama", "period drama", "film histórico", "film storico", "historienfilm", "film historique", "kriegsfilm"] 
-      },
-      animation: { 
-        label: "Animation", 
-        kw: ["animation", "animated", "animé", "animation", "animación", "animazione", "animation", "animacja", "cartoon", "dessin animé", "anime", "animated film", "film d'animation", "animated movie", "animationsfilm", "trickfilm", "cartoon film"] 
-      },
-      famille: { 
-        label: "Famille", 
-        kw: ["family", "family film", "película familiar", "film per famiglie", "familienfilm", "film familijny", "kids", "children", "jeunesse", "enfant", "niños", "bambini", "kinder", "children film", "film familial", "famiglia", "family movie", "kinderfilm"] 
-      },
-      documentaire: { 
-        label: "Documentaire", 
-        kw: ["documentary", "documentaire", "documental", "documentario", "dokumentation", "dokument", "docu", "reportage", "reportaje", "reportage", "dokumentarfilm", "dokumentalny", "documentary film", "film documentaire"] 
-      },
-      érotique: { 
-        label: "Érotique", 
-        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "erotik", "erotikfilm", "erotisches herzkino", "knisternde erotik", "erotismo", "películas eróticas", "cinema erotico", "sessualita", "film erotici", "sensuel", "sensual", "sensuale", "sensual", "pornographique", "pornographic", "porn", "adult", "xxx", "adultos", "erotic film", "film érotique", "película erótica", "erotischer film", "adult film", "erotico", "erotici", "pornografici", "pornográficas", "eróticas", "erotiek", "volwassenen", "porno", "porna", "erotych", "erotyczny", "dorośli", "dla dorosłych", "heiss", "sexy", "adulti", "film érotique"] 
-      },
-    },
-  },
-  série: {
-    label: "Séries",
-    subtypes: {
-      action: { 
-        label: "Action", 
-        kw: ["action", "actionfilm", "película de acción", "film d'azione", "actionfilm", "film akcji", "aventure", "adventure", "aventura", "avventura", "action series", "action show", "série d'action", "serie de acción", "action television"] 
-      },
-      comédie: { 
-        label: "Comédie", 
-        kw: ["comedy", "comédie", "comedia", "commedia", "komödie", "komedia", "sitcom", "humour", "humor", "sketch", "comedy series", "comedy show", "série comique", "serie cómica", "sitcom", "lustspiel", "komödienserie"] 
-      },
-      drame: { 
-        label: "Drame", 
-        kw: ["drama", "drame", "drama", "dramma", "drama", "dramat", "romance", "amour", "romantic", "romance", "amor", "amore", "médical", "medical", "medical", "doctor", "hospital", "drama series", "serie dramática", "séries dramatiques", "dramenserie", "arztfilm"] 
-      },
-      thriller: { 
-        label: "Thriller", 
-        kw: ["thriller", "suspense", "thriller", "thriller", "thriller", "thriller", "mystery", "mystère", "misterio", "mistero", "crime", "crimen", "crimine", "kriminal", "thriller series", "thriller show", "serie de suspense", "krimifilm", "detektiv"] 
-      },
-      scifi: { 
-        label: "Sci-Fi & Fantastique", 
-        kw: ["sci-fi", "science-fiction", "science fiction", "ciencia ficción", "fantascienza", "science-fiction", "fantasy", "fantastique", "fantastical", "fantasia", "surnaturel", "supernatural", "paranormal", "paranormale", "science fiction series", "fantasy series", "serie de science-fiction", "sciencefiction"] 
-      },
-      horreur: { 
-        label: "Horreur", 
-        kw: ["horror", "horreur", "horror", "orrore", "horror", "horror", "dark", "scary", "macabre", "terreur", "horror series", "horror show", "series de terror", "horrorserie", "grusel"] 
-      },
-      animation: { 
-        label: "Animation", 
-        kw: ["animation", "animated", "animé", "animation", "animación", "animazione", "animation", "animacja", "cartoon", "anime", "animated series", "animated show", "serie di animazione", "serie animada", "animationsserie"] 
-      },
-      famille: { 
-        label: "Famille", 
-        kw: ["family", "family film", "película familiar", "film per famiglie", "familienfilm", "film familijny", "kids", "children", "jeunesse", "enfant", "niños", "bambini", "kinder", "family series", "children show", "serie familiale", "kinderfilm", "jugendserie"] 
-      },
-      historique: { 
-        label: "Historique", 
-        kw: ["historical", "history", "historique", "histórico", "storico", "historisch", "historyczny", "période", "period", "época", "historical series", "period drama", "serie historica", "historienfilm"] 
-      },
-      érotique: { 
-        label: "Érotique", 
-        kw: ["erotic", "érotique", "erótico", "erotico", "erotisch", "erotyka", "erotik", "erotikfilm", "erotisches herzkino", "knisternde erotik", "erotismo", "películas eróticas", "cinema erotico", "sessualita", "film erotici", "sensuel", "sensual", "sensuale", "pornographique", "pornographic", "adult", "xxx", "adultos", "erotic series", "adult series", "erotici", "pornografici", "pornográficas", "eróticas", "erotiek", "volwassenen", "porno", "porna", "erotych", "erotyczny", "dorośli", "dla dorosłych", "heiss", "sexy", "adulti", "film érotique"] 
-      },
-    },
-  },
-  info: {
-    label: "Info",
-    subtypes: {
-      journal: { 
-        label: "Journal", 
-        kw: ["journal", "news", "journal télévisé", "noticiario", "giornale televisivo", "nachichten", "wiadomości", "actualité", "actualités", "noticias", "notizie", "news program", "news show", "journal télévisé", "news bulletin", "telegiornale", "nachrichten", "nachrichte", "nieuwsberichten", "dnia"] 
-      },
-      magazine: { 
-        label: "Magazine", 
-        kw: ["magazine", "magazine", "magazine", "magazine", "magazin", "magazyn", "reportage", "reportaje", "reportage", "investigation", "magazine show", "magazine program", "programma magazine", "investigación", "inchiesta"] 
-      },
-    },
-  },
-  documentaire: {
-    label: "Documentaire",
-    subtypes: {
-      nature: { 
-        label: "Nature", 
-        kw: ["nature", "wildlife", "nature", "natura", "natur", "przyroda", "animaux", "animals", "animales", "animali", "tiere", "nature documentary", "wildlife documentary", "documentary nature", "naturfilm", "tierfilm", "dokufilm", "dokumental"] 
-      },
-      histoire: { 
-        label: "Histoire", 
-        kw: ["history", "histoire", "historia", "storia", "geschichte", "historia", "historical documentary", "historia", "geschichtsdoku", "dokumentation"] 
-      },
-      science: { 
-        label: "Science", 
-        kw: ["science", "science", "ciencia", "scienza", "wissenschaft", "nauka", "technologie", "technology", "tecnología", "tecnologia", "science documentary", "science show", "dokumental nauka", "wissenschaftsdoku"] 
-      },
-    },
-  },
-  jeunesse: {
-    label: "Jeunesse",
-    subtypes: {
-      animation: { 
-        label: "Dessin animé", 
-        kw: ["dessin animé", "animation", "cartoon", "anime", "animación", "animazione", "animation", "animacja", "kids", "children", "enfants", "niños", "bambini", "kinder", "cartoon show", "animated kids", "kindersendung", "kinderfilm", "programa infantil"] 
-      },
-    },
-  },
-  divertissement: {
-    label: "Divertissement",
-    subtypes: {
-      varieté: { 
-        label: "Variété", 
-        kw: ["variety", "variété", "variedad", "varietà", "varietät", "różnorodność", "show", "spectacle", "variedades", "show televisivo", "unterhaltung", "unterhaltungssendung", "entertainment show"] 
-      },
-      gameshow: { 
-        label: "Jeu", 
-        kw: ["game show", "game", "jeu", "juego", "gioco", "spiel", "gra", "télé-réalité", "reality", "realidad", "reality", "realtà", "wirklichkeit", "rzeczywistość", "game show", "reality show", "game program", "juego", "spielshow", "konkurencja", "competition"] 
-      },
-      humour: { 
-        label: "Humour", 
-        kw: ["humor", "humour", "humor", "umorismo", "humor", "humor", "comedy", "comédie", "sketch", "stand-up", "comedy show", "talk show", "unterhaltung", "slapstick", "comedia"] 
-      },
-    },
-  },
-  musique: {
-    label: "Musique",
-    subtypes: {
-      concert: { 
-        label: "Concert", 
-        kw: ["concert", "live", "concierto", "concerto", "konzert", "koncert", "música", "music", "musique", "music concert", "live concert", "live performance", "concert film", "concierto en directo", "concerto dal vivo", "musikkonzert"] 
-      },
-    },
-  },
+const COUNTRY_FLAGS: Record<string, string> = {
+  fr: "🇫🇷", gb: "🇬🇧", es: "🇪🇸", it: "🇮🇹", de: "🇩🇪", be: "🇧🇪", ch: "🇨🇭", pl: "🇵🇱", nl: "🇳🇱",
+  at: "🇦🇹", cz: "🇨🇿", dk: "🇩🇰", fi: "🇫🇮", se: "🇸🇪", no: "🇳🇴", pt: "🇵🇹", gr: "🇬🇷", hu: "🇭🇺",
+  ro: "🇷🇴", bg: "🇧🇬", sk: "🇸🇰", si: "🇸🇮", hr: "🇭🇷", ba: "🇧🇦", rs: "🇷🇸", me: "🇲🇪", ua: "🇺🇦",
+  ru: "🇷🇺", tr: "🇹🇷", by: "🇧🇾", kz: "🇰🇿", br: "🇧🇷", mx: "🇲🇽", ar: "🇦🇷", cl: "🇨🇱", co: "🇨🇴",
+  pe: "🇵🇪", ve: "🇻🇪", in: "🇮🇳", pk: "🇵🇰", au: "🇦🇺", nz: "🇳🇿", jp: "🇯🇵", kr: "🇰🇷", cn: "🇨🇳",
+  th: "🇹🇭", my: "🇲🇾", sg: "🇸🇬", id: "🇮🇩", ph: "🇵🇭", vn: "🇻🇳", eg: "🇪🇬", sa: "🇸🇦", ae: "🇦🇪",
+  il: "🇮🇱", ng: "🇳🇬", za: "🇿🇦", ke: "🇰🇪", us: "🇺🇸", ca: "🇨🇦"
 };
 
-function classify(categories: string[]): { type: string; subtype: string } {
-  const hay = categories.join(" ").toLowerCase();
-
-  for (const [typeKey, typeObj] of Object.entries(CLASSIFICATION)) {
-    let found = false;
-    if (typeKey === "film" && (hay.includes("film") || hay.includes("movie") || hay.includes("película") || hay.includes("pellicola") || hay.includes("kino") || hay.includes("spielfilm") || hay.includes("película"))) found = true;
-    else if (typeKey === "sport" && hay.includes("sport")) found = true;
-    else if (typeKey === "série" && (hay.includes("série") || hay.includes("series") || hay.includes("serie") || hay.includes("feuilleton") || hay.includes("telenovela") || hay.includes("seriensendung") || hay.includes("serialisé"))) found = true;
-    else if (typeKey === "info" && (hay.includes("news") || hay.includes("journal") || hay.includes("info") || hay.includes("noticias") || hay.includes("notizie") || hay.includes("nachrichten") || hay.includes("wiadomości"))) found = true;
-    else if (typeKey === "documentaire" && (hay.includes("documentaire") || hay.includes("documentary") || hay.includes("documental") || hay.includes("dokumentation") || hay.includes("dokument") || hay.includes("dokumenatarny"))) found = true;
-    else if (typeKey === "jeunesse" && (hay.includes("enfant") || hay.includes("kids") || hay.includes("jeunesse") || hay.includes("niños") || hay.includes("bambini") || hay.includes("kinder") || hay.includes("kinderfilm") || hay.includes("kindersendung"))) found = true;
-    else if (typeKey === "divertissement" && (hay.includes("divertissement") || hay.includes("entertainment") || hay.includes("unterhaltung") || hay.includes("gameshow") || hay.includes("game show") || hay.includes("reality"))) found = true;
-    else if (typeKey === "musique" && (hay.includes("musique") || hay.includes("music") || hay.includes("música") || hay.includes("musik") || hay.includes("musica"))) found = true;
-
-    if (found) {
-      for (const [subtypeKey, subtypeObj] of Object.entries(typeObj.subtypes)) {
-        if (subtypeObj.kw.some((k) => hay.includes(k))) {
-          return { type: typeKey, subtype: subtypeKey };
-        }
-      }
-      return { type: typeKey, subtype: "autre" };
-    }
-  }
-  return { type: "autre", subtype: "autre" };
+function classifyChannel(channelName: string): { type: string; icon: string } {
+  const name = channelName.toLowerCase().trim();
+  if (/\b(sport|sports|sportv|espn|bein|eurosport|sky sport|fox sport|nbc sport|rai sport|equipe|deporte|deportes|football|futbol|fußball|calcio|tennis|nfl|nba|f1|formula|motogp|premier league|champions league|ligue 1|serie a|bundesliga|laliga)\b/i.test(name)) return { type: "sport", icon: "⚽" };
+  if (/\b(cinema|cinéma|cine|movies?|filme?|kino|sky cinema|canal\+? cinema|action|aventure|thriller|cinemax|moviestar|hollywood|fox movies|paramount|warner)\b/i.test(name)) return { type: "cinema", icon: "🎬" };
+  if (/\b(news|info|infos|actu|cnn|bbc news|bfm|france info|euronews|sky news|fox news|al jazeera|wiadomości|tg|noticias|nachrichten|24h|breaking|journal)\b/i.test(name)) return { type: "info", icon: "📰" };
+  if (/\b(adult|adulte|adults|adultos|erotic|érotique|erotik|erotico|porn|porno|playboy|hustler|xxx|brazzers|spice|private|venus)\b/i.test(name)) return { type: "adulte", icon: "🔞" };
+  if (/\b(disney|nick|nickelodeon|cartoon|kids|enfants|gulli|tiji|piwi|baby|junior|disney channel|teletoon|nick jr|baby tv|pokemon|dzieci|infantil|niños)\b/i.test(name)) return { type: "jeunesse", icon: "🧒" };
+  if (/\b(mtv|mcm|music|musique|musical|nrj|virgin|trace|vh1|melody|stingray|musica|musik)\b/i.test(name)) return { type: "musique", icon: "🎵" };
+  if (/\b(discovery|national geographic|nat geo|natgeo|histoire|history|geo|geographic|earth|planet|wildlife|nature|animal|animaux|science|documentaire|documentary|dokument)\b/i.test(name)) return { type: "documentaire", icon: "🌍" };
+  if (/\b(tv5|euronews|france 24|deutsche welle|dw|al jazeera|cnn international|bbc world|rt|rfi|nhk world|cgtn|press tv)\b/i.test(name)) return { type: "international", icon: "🌐" };
+  if (/\b(comedy|comédie|humour|humor|entertainment|divertissement|reality|nrj12|tf1 séries|w9|c8|6ter|tmc|tf x|paris première|fashion tv|fashion)\b/i.test(name)) return { type: "divertissement", icon: "🎭" };
+  return { type: "generaliste", icon: "📺" };
 }
 
 function xmltvToISO(t: string | undefined): string | null {
@@ -264,112 +68,176 @@ function asArray<T>(x: T | T[] | undefined): T[] {
 function textOf(node: any): string {
   if (node == null) return "";
   if (typeof node === "string") return node;
-  if (typeof node === "number") return String(node);
   if (typeof node === "object" && "#text" in node) return String(node["#text"]);
   return "";
 }
 
 function decode(s: string): string {
   if (!s) return s;
-  return s
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+  return s.replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
-    .replace(/&apos;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&");
+    .replace(/&apos;/g, "'").replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 }
 
-type Channel = { id: string; name: string; icon: string | null };
-type Programme = {
-  channel: string; channelName: string; title: string; desc: string;
-  start: string | null; stop: string | null; type: string; subtype: string; categories: string[];
-};
+const EROTIC_CATEGORIES = ["erotic", "erotica", "porn", "adult", "xxx", "érotique", "pornographique", "porno", "adulte", "erótico", "erotismo", "adultos", "erotico", "erotici", "erotismo", "adulti", "erotisch", "erotik", "erotikfilm", "erotiek", "volwassenen", "erotyka", "erotyczny", "эротика", "erotický", "erotikus", "erotic", "еротичен", "erotski", "erotik", "erotisk", "erotikk", "erootika", "erotika", "ερωτικό", "erotik", "إثارة", "إباحي", "ארוטי", "成人", "色情", "アダルト", "성인", "อีโรติก", "dewasa", "khiêu dâm", "वयस्क", "প্রাপ্তবয়স্ক"];
 
-async function fetchAndParse(countryCode: string) {
-  const src = SOURCES[countryCode];
-  if (!src) throw new Error(`Pays non supporté: ${countryCode}`);
+const WORLDCUP_TITLES = ["world cup", "fifa world cup", "wc 2026", "coupe du monde", "mondial", "cdm 2026", "copa mundial", "mundial", "coppa del mondo", "mondiali", "weltmeisterschaft", "wm 2026", "fußball-wm", "wereldkampioenschap", "wk 2026", "mistrzostwa świata", "mś 2026", "copa do mundo", "чемпионат мира", "чм 2026", "чемпіонат світу", "mistrovství světa", "ms 2026", "világbajnokság", "vb 2026", "campionatul mondial", "световно първенство", "svjetsko prvenstvo", "svetsko prvenstvo", "svetovno prvenstvo", "vm 2026", "mm 2026", "παγκόσμιο κύπελλο", "dünya kupası", "كأس العالم", "גביע העולם", "世界杯", "ワールドカップ", "월드컵", "ฟุตบอลโลก", "piala dunia", "विश्व कप", "বিশ্বকাপ"];
 
-  let xml = "";
-  let lastErr: unknown = null;
-  for (const url of src.urls) {
-    try {
-      const res = await fetch(url, {
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; TVGuideEU/1.0)" },
+const EXCLUSIONS = ["dessin animé", "cartoon", "animated", "anime", "kids", "children", "kinder", "dibujos animados", "cartone animato", "kreskówka"];
+
+function isEroticProgram(title: string, cats: string[]): boolean {
+  const titleLower = title.toLowerCase();
+  if (EXCLUSIONS.some(kw => titleLower.includes(kw))) return false;
+  const catsLower = cats.map(c => c.toLowerCase()).join(" ");
+  return EROTIC_CATEGORIES.some(kw => catsLower.includes(kw));
+}
+
+function isWorldCupMatch(title: string, desc: string, cats: string[]): boolean {
+  const titleLower = title.toLowerCase();
+  const descLower = desc.toLowerCase();
+  const catsLower = cats.map(c => c.toLowerCase()).join(" ");
+  const isSport = catsLower.includes("sport") || catsLower.includes("fußball") || catsLower.includes("football") || catsLower.includes("soccer") || catsLower.includes("fútbol") || catsLower.includes("calcio");
+  if (!isSport) return false;
+  if (EXCLUSIONS.some(kw => titleLower.includes(kw))) return false;
+  const text = `${titleLower} ${descLower}`;
+  return WORLDCUP_TITLES.some(kw => text.includes(kw));
+}
+
+// ─── TIMEOUT par pays (5 secondes max) ───
+async function fetchEPG(countryCode: string, timeoutMs = 5000) {
+  try {
+    const url = `https://iptv-epg.org/files/epg-${countryCode}.xml.gz`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    
+    if (!res.ok) return { erotica: [], worldcup: [], error: `HTTP ${res.status}` };
+    
+    const buf = Buffer.from(await res.arrayBuffer());
+    const xml = gunzipSync(buf).toString("utf-8");
+    
+    const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_", trimValues: true, processEntities: false });
+    const doc = parser.parse(xml);
+    const tv = doc.tv ?? {};
+    
+    const now = Date.now();
+    const channels: Record<string, string> = {};
+    
+    for (const ch of asArray<any>(tv.channel)) {
+      const id = ch["@_id"];
+      if (!id) continue;
+      const names = asArray<any>(ch["display-name"]).map(textOf).map(decode).filter(Boolean);
+      channels[id] = names[0] || id;
+    }
+    
+    const erotica: any[] = [];
+    const worldcup: any[] = [];
+    
+    for (const p of asArray<any>(tv.programme)) {
+      const start = p["@_start"];
+      const stop = p["@_stop"];
+      if (!start || !stop) continue;
+      
+      const startTime = xmltvToISO(start);
+      const stopTime = xmltvToISO(stop);
+      if (!startTime || !stopTime) continue;
+      
+      const startMs = new Date(startTime).getTime();
+      const stopMs = new Date(stopTime).getTime();
+      if (!(startMs <= now && now < stopMs)) continue;
+      
+      const channelId = p["@_channel"];
+      const channelName = channels[channelId] || channelId;
+      const channelClass = classifyChannel(channelName);
+      
+      const title = decode(textOf(asArray<any>(p.title)[0])) || "Sans titre";
+      const desc = decode(textOf(asArray<any>(p.desc)[0])) || "";
+      const cats = asArray<any>(p.category).map(textOf).map(decode).filter(Boolean);
+      
+      const prog = { 
+        channel: channelName, 
+        channelType: channelClass.type,
+        channelIcon: channelClass.icon,
+        title, desc, start: startTime, stop: stopTime 
+      };
+      
+      if (isEroticProgram(title, cats)) erotica.push(prog);
+      if (isWorldCupMatch(title, desc, cats)) worldcup.push(prog);
+    }
+    
+    return { erotica, worldcup };
+  } catch (e: any) {
+    return { erotica: [], worldcup: [], error: e?.message || "Erreur" };
+  }
+}
+
+// ─── CHARGEMENT PAR BATCH ───
+async function fetchInBatches(codes: string[], batchSize = 5) {
+  const allErotica: any[] = [];
+  const allWorldcup: any[] = [];
+  const errors: string[] = [];
+  
+  for (let i = 0; i < codes.length; i += batchSize) {
+    const batch = codes.slice(i, i + batchSize);
+    const results = await Promise.all(batch.map(cc => fetchEPG(cc)));
+    
+    batch.forEach((cc, idx) => {
+      const result = results[idx];
+      if (result.error) errors.push(`${cc}: ${result.error}`);
+      
+      result.erotica.forEach((p: any) => {
+        allErotica.push({ ...p, country: cc, countryName: COUNTRY_NAMES[cc] || cc.toUpperCase(), flag: COUNTRY_FLAGS[cc] || "🌍" });
       });
-      if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
-      const buf = Buffer.from(await res.arrayBuffer());
-      xml = url.endsWith(".gz") ? gunzipSync(buf).toString("utf-8") : buf.toString("utf-8");
-      break;
-    } catch (e) { lastErr = e; }
-  }
-  if (!xml) throw lastErr ?? new Error("Aucune source disponible");
-
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-    attributeNamePrefix: "@_",
-    trimValues: true,
-    processEntities: false,
-  });
-  const doc = parser.parse(xml);
-  const tv = doc.tv ?? {};
-
-  const channels: Record<string, Channel> = {};
-  for (const ch of asArray<any>(tv.channel)) {
-    const id = ch["@_id"];
-    if (!id) continue;
-    const names = asArray<any>(ch["display-name"]).map(textOf).map(decode).filter(Boolean);
-    const icon = ch.icon ? (asArray<any>(ch.icon)[0]?.["@_src"] ?? null) : null;
-    channels[id] = { id, name: names[0] || id, icon };
-  }
-
-  const programmes: Programme[] = [];
-  for (const p of asArray<any>(tv.programme)) {
-    const channel = p["@_channel"];
-    const cats = asArray<any>(p.category).map(textOf).map(decode).filter(Boolean);
-    const classification = classify(cats);
-    programmes.push({
-      channel,
-      channelName: channels[channel]?.name || channel,
-      title: decode(textOf(asArray<any>(p.title)[0])) || "Sans titre",
-      desc: decode(textOf(asArray<any>(p.desc)[0])) || "",
-      start: xmltvToISO(p["@_start"]),
-      stop: xmltvToISO(p["@_stop"]),
-      type: classification.type,
-      subtype: classification.subtype,
-      categories: cats,
+      result.worldcup.forEach((p: any) => {
+        allWorldcup.push({ ...p, country: cc, countryName: COUNTRY_NAMES[cc] || cc.toUpperCase(), flag: COUNTRY_FLAGS[cc] || "🌍" });
+      });
     });
   }
-
-  return {
-    country: countryCode, countryName: src.name, flag: src.flag,
-    generatedAt: new Date().toISOString(),
-    channels: Object.values(channels), programmes,
-  };
+  
+  return { erotica: allErotica, worldcup: allWorldcup, errors };
 }
 
 export default async (req: Request) => {
-  const url = new URL(req.url);
-  const country = (url.searchParams.get("country") || "FR").toUpperCase();
-
-  if (!SOURCES[country]) {
-    return Response.json(
-      { error: `Pays non supporté. Disponibles: ${Object.keys(SOURCES).join(", ")}` },
-      { status: 400 }
-    );
-  }
-
   try {
-    const data = await fetchAndParse(country);
-    return Response.json(data, {
-      headers: { "Cache-Control": "public, max-age=600, s-maxage=21600, stale-while-revalidate=86400" },
+    const url = new URL(req.url);
+    const countriesParam = url.searchParams.get("countries") || "";
+    
+    if (!countriesParam) {
+      return Response.json({
+        countries: COUNTRIES.map(cc => ({
+          code: cc,
+          name: COUNTRY_NAMES[cc] || cc.toUpperCase(),
+          flag: COUNTRY_FLAGS[cc] || "🌍"
+        }))
+      }, { headers: { "Cache-Control": "public, max-age=3600" } });
+    }
+    
+    const selectedCountries = countriesParam.split(",").filter(c => COUNTRIES.includes(c));
+    if (selectedCountries.length === 0) {
+      return Response.json({ error: "Aucun pays valide", erotica: [], worldcup: [] }, { status: 200 });
+    }
+    
+    // ⚡ Chargement par batch de 5 pays
+    const { erotica, worldcup, errors } = await fetchInBatches(selectedCountries, 5);
+    
+    return Response.json({
+      generatedAt: new Date().toISOString(),
+      countriesProcessed: selectedCountries.length,
+      errors: errors.length,
+      erotica: erotica.sort((a, b) => a.start.localeCompare(b.start)),
+      worldcup: worldcup.sort((a, b) => a.start.localeCompare(b.start))
+    }, { 
+      headers: { "Cache-Control": "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400" } 
     });
   } catch (e: any) {
-    return Response.json({ error: e?.message || "Erreur EPG" }, { status: 502 });
+    return Response.json({ error: e?.message || "Erreur serveur", erotica: [], worldcup: [] }, { status: 200 });
   }
 };
 
-export const config: Config = {
-  path: "/api/epg",
-};
+export const config: Config = { path: "/api/monde-live" };
