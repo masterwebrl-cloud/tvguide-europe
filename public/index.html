@@ -3,402 +3,367 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Antenne — Programme TV Europe</title>
+<title>Monde Live</title>
 <style>
-  :root {
-    --ink: #0a0e27;
-    --ink-2: #141a3a;
-    --panel: #1a2145;
-    --panel-2: #232c5a;
-    --line: #2e3870;
-    --text: #e8ebff;
-    --muted: #9aa3d4;
-    --gold: #e8b647;
-    --live: #ff4d5e;
-    --t-sport: #4fb286;
-    --t-film: #c06ad6;
-    --t-serie: #5b8def;
-    --t-info: #e07b53;
-    --t-documentaire: #4cc0c8;
-    --t-jeunesse: #e8b647;
-    --t-divertissement: #ef6f9e;
-    --t-musique: #8a7de8;
-    --t-autre: #6b76b0;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--ink);
-    color: var(--text);
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    line-height: 1.45;
-    min-height: 100vh;
-  }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 80px; }
-  header {
-    background: linear-gradient(180deg, var(--ink-2), var(--ink));
-    border-bottom: 1px solid var(--line);
-    padding: 28px 0 24px;
-  }
-  .brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-  .brand h1 {
-    font-family: "Archivo", "Inter", sans-serif;
-    font-size: clamp(34px, 6vw, 58px);
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 0.9;
-    text-transform: uppercase;
-  }
-  .brand h1 .dot { color: var(--gold); }
-  .brand .tag { color: var(--muted); font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; }
-  .bars { display: flex; height: 6px; margin-top: 18px; border-radius: 3px; overflow: hidden; }
-  .bars span { flex: 1; }
+:root {
+  --ink: #0a0e27;
+  --ink-2: #141a3a;
+  --panel: #1a2145;
+  --line: #2e3870;
+  --text: #e8ebff;
+  --muted: #9aa3d4;
+  --gold: #e8b647;
+  --live: #ff4d5e;
+  --match: #4fb286;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--ink); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, sans-serif; min-height: 100vh; }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px 80px; }
+header { background: linear-gradient(180deg, var(--ink-2), var(--ink)); border-bottom: 1px solid var(--line); padding: 28px 0 24px; }
+h1 { font-size: 48px; font-weight: 800; }
+.dot { color: var(--gold); }
+.tag { color: var(--muted); font-size: 12px; text-transform: uppercase; margin-top: 8px; }
 
-  .controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 14px;
-    margin: 26px 0 12px;
-    align-items: end;
-  }
-  .field label {
-    display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 6px;
-  }
-  select, input[type="search"] {
-    width: 100%;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    color: var(--text);
-    padding: 11px 13px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-family: inherit;
-  }
-  select:focus, input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
-  .now-toggle {
-    display: inline-flex; align-items: center; gap: 9px;
-    background: var(--panel); border: 1px solid var(--line);
-    padding: 11px 15px; border-radius: 8px; cursor: pointer;
-    font-size: 14px; white-space: nowrap; user-select: none;
-  }
-  .now-toggle.active { border-color: var(--live); color: #fff; background: rgba(255,77,94,0.12); }
-  .now-toggle .led {
-    width: 9px; height: 9px; border-radius: 50%; background: #555f9c;
-  }
-  .now-toggle.active .led { background: var(--live); box-shadow: 0 0 8px var(--live); animation: pulse 1.6s infinite; }
-  @keyframes pulse { 50% { opacity: 0.4; } }
+.continent { margin-bottom: 24px; }
+.continent-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; background: var(--panel); border-radius: 9px 9px 0 0;
+  cursor: pointer; user-select: none; border: 1px solid var(--line);
+}
+.continent-header:hover { border-color: var(--gold); }
+.continent-icon { font-size: 24px; }
+.continent-name { font-weight: 700; font-size: 16px; flex: 1; }
+.continent-count { font-size: 12px; color: var(--muted); }
+.continent-toggle { color: var(--gold); font-size: 14px; }
+.continent-body { 
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px; padding: 16px; background: var(--ink-2); 
+  border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line); border-radius: 0 0 9px 9px;
+}
+.continent.collapsed .continent-body { display: none; }
+.continent.collapsed .continent-toggle::after { content: " ▼"; }
+.continent:not(.collapsed) .continent-toggle::after { content: " ▲"; }
 
-  /* Chips container */
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; min-height: 28px; }
-  .chip {
-    background: var(--panel-2); border: 1px solid var(--line);
-    color: var(--muted); padding: 5px 11px; border-radius: 20px;
-    font-size: 12px; cursor: pointer; transition: all 0.12s; user-select: none; white-space: nowrap;
-  }
-  .chip.active { color: var(--ink); font-weight: 600; border-color: transparent; }
-  .chip:hover { border-color: var(--gold); }
+.country-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px; border-radius: 8px;
+  background: var(--ink); border: 1px solid var(--line);
+  cursor: pointer; transition: all 0.12s; user-select: none;
+}
+.country-item:hover { border-color: var(--gold); }
+.country-item.selected { background: var(--gold); color: var(--ink); font-weight: 600; }
+.country-flag { font-size: 28px; }
+.country-name { font-size: 10px; text-align: center; word-break: break-word; }
 
-  .meta { color: var(--muted); font-size: 13px; margin-bottom: 18px; display: flex; gap: 16px; flex-wrap: wrap; }
-  .meta strong { color: var(--text); }
+.actions { 
+  display: flex; gap: 12px; margin: 20px 0; justify-content: center; 
+  flex-wrap: wrap; position: sticky; bottom: 20px;
+  background: var(--ink); padding: 12px; border-radius: 9px;
+  border: 1px solid var(--line);
+  z-index: 10;
+}
+.actions button { border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.actions .submit { background: var(--gold); color: var(--ink); }
+.actions .cancel { background: var(--panel); color: var(--text); border: 1px solid var(--line); }
+.actions .submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .channel-block { margin-bottom: 30px; }
-  .channel-head {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
-    padding-bottom: 8px; border-bottom: 1px solid var(--line);
-  }
-  .channel-head .logo {
-    width: 36px; height: 36px; border-radius: 7px; object-fit: contain;
-    background: #fff; padding: 3px; flex-shrink: 0;
-  }
-  .channel-head .logo-fallback {
-    width: 36px; height: 36px; border-radius: 7px; flex-shrink: 0;
-    background: var(--panel-2); display: grid; place-items: center;
-    font-weight: 700; font-size: 14px; color: var(--gold);
-  }
-  .channel-head h2 { font-size: 17px; font-weight: 700; }
-  .channel-head .count { color: var(--muted); font-size: 12px; margin-left: auto; }
+.controls { display: flex; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+.controls button { background: var(--panel); border: 1px solid var(--line); color: var(--text); padding: 10px 16px; border-radius: 8px; cursor: pointer; }
+.controls button.active { background: var(--gold); color: var(--ink); font-weight: 600; }
 
-  .prog {
-    display: grid; grid-template-columns: 64px 8px 1fr; gap: 12px;
-    padding: 11px 14px; border-radius: 9px; background: var(--panel);
-    border: 1px solid transparent; margin-bottom: 7px; align-items: start;
-  }
-  .prog.live { border-color: var(--live); background: rgba(255,77,94,0.07); }
-  .prog .time { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; }
-  .prog .time .end { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
-  .prog .rail { width: 4px; border-radius: 2px; align-self: stretch; }
-  .prog .body .title { font-weight: 600; font-size: 15px; }
-  .prog .body .live-badge {
-    display: inline-block; background: var(--live); color: #fff; font-size: 10px;
-    font-weight: 700; padding: 1px 7px; border-radius: 4px; margin-left: 8px;
-    letter-spacing: 0.05em; vertical-align: middle;
-  }
-  .prog .body .tline { display: flex; gap: 8px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
-  .prog .body .type-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-  .prog .body .desc { color: var(--muted); font-size: 13px; margin-top: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-  .state { text-align: center; padding: 70px 20px; color: var(--muted); }
-  .state .spinner {
-    width: 34px; height: 34px; border: 3px solid var(--line); border-top-color: var(--gold);
-    border-radius: 50%; margin: 0 auto 18px; animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .state button {
-    margin-top: 16px; background: var(--gold); color: var(--ink); border: none;
-    padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;
-  }
-
-  @media (max-width: 720px) {
-    .controls { grid-template-columns: 1fr; }
-    .prog { grid-template-columns: 56px 6px 1fr; gap: 9px; padding: 10px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; }
-  }
+.items { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.item { background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 14px; transition: all 0.12s; }
+.item.erotica { border-color: #ff69b4; }
+.item.worldcup { border-color: var(--match); border-left: 4px solid var(--match); }
+.item-header { display: flex; gap: 8px; margin-bottom: 8px; align-items: start; }
+.item-flag { font-size: 24px; flex-shrink: 0; }
+.item-info { flex: 1; }
+.item-country { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+.item-title { font-weight: 600; margin-top: 4px; font-size: 15px; }
+.item-channel { font-size: 12px; color: var(--gold); margin-top: 4px; font-weight: 600; }
+.item-time { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.item-badge { display: inline-block; background: var(--live); color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; margin-top: 6px; }
+.state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--line); border-top-color: var(--gold); border-radius: 50%; margin: 0 auto 16px; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+h2 { font-size: 20px; margin: 20px 0 10px; }
+.subtitle { color: var(--muted); font-size: 12px; margin-bottom: 20px; }
+.summary { background: var(--panel); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--gold); }
+.summary strong { color: var(--gold); }
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <div class="brand">
-      <h1>Antenne<span class="dot">.</span></h1>
-      <span class="tag">Programme TV — Europe</span>
-    </div>
-    <div class="bars" id="bars"></div>
+    <h1>Monde<span class="dot">.</span>Live</h1>
+    <div class="tag">🎬 Films Érotiques • ⚽ Coupe du Monde</div>
   </div>
 </header>
 
-<div class="wrap">
-  <div class="controls">
-    <div class="field">
-      <label for="typeSelect">Type de programme</label>
-      <select id="typeSelect">
-        <option value="">Tous</option>
-        <option value="sport">Sport</option>
-        <option value="film">Films</option>
-        <option value="série">Séries</option>
-        <option value="info">Info</option>
-        <option value="documentaire">Documentaire</option>
-        <option value="jeunesse">Jeunesse</option>
-        <option value="divertissement">Divertissement</option>
-        <option value="musique">Musique</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="search">Chaîne ou programme</label>
-      <input type="search" id="search" placeholder="Rechercher…" autocomplete="off" />
-    </div>
-    <div class="field">
-      <label>&nbsp;</label>
-      <div class="now-toggle" id="nowToggle" role="button" tabindex="0" aria-pressed="false">
-        <span class="led"></span> À l'antenne
-      </div>
-    </div>
-  </div>
-
-  <div class="field">
-    <label for="countrySelect">Pays</label>
-    <select id="countrySelect">
-      <option value="FR">🇫🇷 France</option>
-      <option value="GB">🇬🇧 Royaume-Uni</option>
-      <option value="ES">🇪🇸 Espagne</option>
-      <option value="IT">🇮🇹 Italie</option>
-      <option value="DE">🇩🇪 Allemagne</option>
-      <option value="BE">🇧🇪 Belgique</option>
-      <option value="CH">🇨🇭 Suisse</option>
-      <option value="PL">🇵🇱 Pologne</option>
-      <option value="NL">🇳🇱 Pays-Bas</option>
-    </select>
-  </div>
-
-  <div class="chips" id="chips"></div>
-
-  <div class="meta" id="meta"></div>
-
-  <div id="content">
-    <div class="state"><div class="spinner"></div>Chargement du programme…</div>
-  </div>
-</div>
+<div class="wrap" id="app"></div>
 
 <script>
-const SUBTYPES = {
-  sport: { football: "Football", rugby: "Rugby", tennis: "Tennis", basket: "Basket", cyclisme: "Cyclisme", golf: "Golf", boxe: "Boxe", f1: "F1", motogp: "MotoGP", athlétisme: "Athlétisme" },
-  film: { action: "Action", comédie: "Comédie", drame: "Drame", thriller: "Thriller", horreur: "Horreur", scifi: "Sci-Fi & Fantastique", historique: "Historique", animation: "Animation", famille: "Famille", documentaire: "Documentaire", érotique: "Érotique" },
-  série: { action: "Action", comédie: "Comédie", drame: "Drame", thriller: "Thriller", scifi: "Sci-Fi & Fantastique", horreur: "Horreur", animation: "Animation", famille: "Famille", historique: "Historique", érotique: "Érotique" },
-  info: { journal: "Journal", magazine: "Magazine" },
-  documentaire: { nature: "Nature", histoire: "Histoire", science: "Science" },
-  jeunesse: { animation: "Dessin animé" },
-  divertissement: { varieté: "Variété", gameshow: "Jeu", humour: "Humour" },
-  musique: { concert: "Concert" },
-};
+const state = { countries: [], selectedCountries: [], data: null, stage: "select", filter: "all" };
 
-const TYPES = {
-  sport: "var(--t-sport)",
-  film: "var(--t-film)",
-  série: "var(--t-serie)",
-  info: "var(--t-info)",
-  documentaire: "var(--t-documentaire)",
-  jeunesse: "var(--t-jeunesse)",
-  divertissement: "var(--t-divertissement)",
-  musique: "var(--t-musique)",
-};
-
-const state = {
-  data: null,
-  activeType: null,
-  activeSubtypes: new Set(),
-  search: "",
-  nowOnly: false,
-  country: "FR",
-};
-
-document.getElementById("bars").innerHTML = Object.values(TYPES).slice(0,8)
-  .map(c => `<span style="background:${c}"></span>`).join("");
-
-const typeSelect = document.getElementById("typeSelect");
-const chipsContainer = document.getElementById("chips");
-
-typeSelect.onchange = (e) => {
-  state.activeType = e.target.value || null;
-  state.activeSubtypes.clear();
-  updateChips();
-  render();
-};
-
-function updateChips() {
-  chipsContainer.innerHTML = "";
-  if (!state.activeType || !SUBTYPES[state.activeType]) return;
-  
-  const subtypes = SUBTYPES[state.activeType];
-  const col = getComputedStyle(document.documentElement).getPropertyValue(TYPES[state.activeType]).trim();
-  
-  for (const [subKey, subLabel] of Object.entries(subtypes)) {
-    const chip = document.createElement("div");
-    chip.className = `chip ${state.activeSubtypes.has(subKey) ? "active" : ""}`;
-    chip.textContent = subLabel;
-    if (state.activeSubtypes.has(subKey)) chip.style.background = col;
-    chip.onclick = () => {
-      if (state.activeSubtypes.has(subKey)) {
-        state.activeSubtypes.delete(subKey);
-        chip.classList.remove("active");
-        chip.style.background = "";
-      } else {
-        state.activeSubtypes.add(subKey);
-        chip.classList.add("active");
-        chip.style.background = col;
-      }
-      render();
-    };
-    chipsContainer.appendChild(chip);
+// Organisation par continents
+const CONTINENTS = {
+  europe: {
+    icon: "🌍", name: "Europe",
+    codes: ["fr", "gb", "es", "it", "de", "be", "ch", "pl", "nl", "at", "cz", "dk", "fi", "se", "no", "pt", "gr", "hu", "ro", "bg", "sk", "si", "hr", "ba", "rs", "me", "ua", "by", "ie", "is", "al", "ad", "ee", "lv", "lt", "lu", "mt", "md", "mc", "sm", "xk", "li"]
+  },
+  asia: {
+    icon: "🌏", name: "Asie",
+    codes: ["ru", "tr", "kz", "uz", "tm", "tj", "kg", "ge", "am", "az", "af", "bd", "bt", "in", "lk", "mv", "np", "pk", "jp", "kr", "cn", "th", "my", "sg", "id", "ph", "vn", "sa", "ae", "il"]
+  },
+  africa: {
+    icon: "🌍", name: "Afrique",
+    codes: ["eg", "ng", "za", "ke", "mu", "sc"]
+  },
+  americas: {
+    icon: "🌎", name: "Amériques",
+    codes: ["us", "ca", "mx", "br", "ar", "cl", "co", "pe", "ve", "ec", "gy", "py", "sr", "uy", "bz", "cr", "sv", "gt", "hn", "ni", "pa", "jm", "tt", "bs", "dm", "pr", "ag", "bb", "gd"]
+  },
+  oceania: {
+    icon: "🌏", name: "Océanie",
+    codes: ["au", "nz", "fj", "pf", "sb", "vu"]
   }
-}
-
-const typeColor = (type) => {
-  const css = TYPES[type] || TYPES.autre;
-  return getComputedStyle(document.documentElement).getPropertyValue(css).trim();
 };
 
-const fmtTime = (iso) => {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-};
-const isLive = (p) => {
-  if (!p.start || !p.stop) return false;
-  const now = Date.now();
-  return new Date(p.start).getTime() <= now && now < new Date(p.stop).getTime();
-};
-
-async function load(country, force) {
-  document.getElementById("content").innerHTML =
-    `<div class="state"><div class="spinner"></div>Chargement du programme…</div>`;
+async function init() {
   try {
-    const res = await fetch(`/api/epg?country=${country}${force ? "&refresh=1" : ""}`);
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `Erreur ${res.status}`);
-    }
-    state.data = await res.json();
-    render();
+    const res = await fetch("/api/monde-live");
+    const data = await res.json();
+    state.countries = data.countries || [];
+    renderSelector();
   } catch (e) {
-    document.getElementById("content").innerHTML =
-      `<div class="state">Impossible de charger le programme.<br><span style="font-size:13px">${e.message}</span><br>
-       <button onclick="load('${country}', true)">Réessayer</button></div>`;
+    document.getElementById("app").innerHTML = `<div class="state">❌ Erreur chargement</div>`;
   }
 }
 
-function render() {
-  if (!state.data) return;
-  const { programmes, channels } = state.data;
-  const now = Date.now();
-  const q = state.search.toLowerCase().trim();
+function getCountryByCode(code) {
+  return state.countries.find(c => c.code === code);
+}
 
-  let progs = programmes.filter(p => {
-    if (state.activeType && p.type !== state.activeType) return false;
-    if (state.activeSubtypes.size && !state.activeSubtypes.has(p.subtype)) return false;
-    if (state.nowOnly && !isLive(p)) return false;
-    if (q && !(p.title.toLowerCase().includes(q) || p.channelName.toLowerCase().includes(q))) return false;
-    if (!state.nowOnly && p.stop && new Date(p.stop).getTime() < now) return false;
-    return true;
-  });
-
-  document.getElementById("meta").innerHTML =
-    `<span>${state.data.flag} <strong>${state.data.countryName}</strong></span>
-     <span><strong>${channels.length}</strong> chaînes</span>
-     <span><strong>${progs.length}</strong> programmes</span>
-     <span><strong>${programmes.filter(isLive).length}</strong> en direct</span>`;
-
-  if (!progs.length) {
-    document.getElementById("content").innerHTML =
-      `<div class="state">Aucun programme ne correspond.</div>`;
-    return;
+function renderSelector() {
+  let html = `
+    <h2>🌍 Sélectionne les pays</h2>
+    <p class="subtitle">Choisis 1 ou plusieurs pays pour voir les films érotiques et matchs en direct</p>`;
+  
+  // Compteur de sélection
+  if (state.selectedCountries.length > 0) {
+    html += `<div class="summary"><strong>${state.selectedCountries.length}</strong> pays sélectionné(s)</div>`;
   }
-
-  const byChannel = {};
-  for (const p of progs) (byChannel[p.channel] ||= []).push(p);
-  const channelMap = Object.fromEntries(channels.map(c => [c.id, c]));
-  const sortedChannels = Object.keys(byChannel).sort((a,b) =>
-    (channelMap[a]?.name || a).localeCompare(channelMap[b]?.name || b, "fr"));
-
-  let html = "";
-  for (const chId of sortedChannels) {
-    const ch = channelMap[chId] || { name: chId, icon: null };
-    const list = byChannel[chId].sort((a,b) => (a.start||"").localeCompare(b.start||"")).slice(0, 40);
-    const logo = ch.icon
-      ? `<img class="logo" src="${ch.icon}" alt="" onerror="this.outerHTML='<div class=&quot;logo-fallback&quot;>${(ch.name[0]||'?')}</div>';" />`
-      : `<div class="logo-fallback">${(ch.name[0]||"?").toUpperCase()}</div>`;
-    html += `<div class="channel-block">
-      <div class="channel-head">${logo}<h2>${esc(ch.name)}</h2><span class="count">${byChannel[chId].length}</span></div>`;
-    for (const p of list) {
-      const live = isLive(p);
-      const col = typeColor(p.type);
-      const subLabel = SUBTYPES[p.type]?.[p.subtype] || "Autre";
-      html += `<div class="prog ${live ? "live" : ""}">
-        <div class="time">${fmtTime(p.start)}<span class="end">${fmtTime(p.stop)}</span></div>
-        <div class="rail" style="background:${col}"></div>
-        <div class="body">
-          <div class="title">${esc(p.title)}${live ? '<span class="live-badge">DIRECT</span>' : ""}</div>
-          <div class="tline"><span class="type-tag" style="color:${col}">${subLabel}</span></div>
-          ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ""}
-        </div>
+  
+  // Affichage par continent
+  for (const [contKey, cont] of Object.entries(CONTINENTS)) {
+    const continentCountries = cont.codes
+      .map(code => getCountryByCode(code))
+      .filter(c => c !== undefined);
+    
+    if (continentCountries.length === 0) continue;
+    
+    const isCollapsed = false; // Tous ouverts par défaut
+    const selectedInCont = continentCountries.filter(c => state.selectedCountries.includes(c.code)).length;
+    
+    html += `<div class="continent ${isCollapsed ? 'collapsed' : ''}" data-continent="${contKey}">
+      <div class="continent-header" onclick="toggleContinent('${contKey}')">
+        <span class="continent-icon">${cont.icon}</span>
+        <span class="continent-name">${cont.name}</span>
+        <span class="continent-count">${selectedInCont}/${continentCountries.length} pays</span>
+        <button onclick="event.stopPropagation(); selectContinent('${contKey}')" style="background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;">Tout sélectionner</button>
+        <button onclick="event.stopPropagation(); deselectContinent('${contKey}')" style="background: transparent; border: 1px solid var(--muted); color: var(--muted); padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;">Désélectionner</button>
+        <span class="continent-toggle"></span>
+      </div>
+      <div class="continent-body">`;
+    
+    continentCountries.forEach(c => {
+      const isSelected = state.selectedCountries.includes(c.code);
+      html += `<div class="country-item ${isSelected ? 'selected' : ''}" data-code="${c.code}" onclick="toggleCountry('${c.code}')">
+        <span class="country-flag">${c.flag}</span>
+        <span class="country-name">${c.name}</span>
       </div>`;
-    }
-    html += `</div>`;
+    });
+    
+    html += `</div></div>`;
   }
-  document.getElementById("content").innerHTML = html;
+  
+  html += `
+    <div class="actions">
+      <button class="submit" onclick="submitSelection()" ${state.selectedCountries.length === 0 ? 'disabled' : ''}>
+        Charger les données (${state.selectedCountries.length})
+      </button>
+      <button class="cancel" onclick="selectAll()">Tous les pays</button>
+      <button class="cancel" onclick="clearSelection()">Réinitialiser</button>
+    </div>`;
+  
+  document.getElementById("app").innerHTML = html;
 }
 
-function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function toggleCountry(code) {
+  if (state.selectedCountries.includes(code)) {
+    state.selectedCountries = state.selectedCountries.filter(c => c !== code);
+  } else {
+    state.selectedCountries.push(code);
+  }
+  renderSelector();
+}
 
-document.getElementById("countrySelect").onchange = (e) => { state.country = e.target.value; load(state.country); };
-document.getElementById("search").oninput = (e) => { state.search = e.target.value; setTimeout(render, 180); };
-const nowToggle = document.getElementById("nowToggle");
-nowToggle.onclick = () => {
-  state.nowOnly = !state.nowOnly;
-  nowToggle.classList.toggle("active", state.nowOnly);
-  render();
-};
+function toggleContinent(contKey) {
+  const el = document.querySelector(`.continent[data-continent="${contKey}"]`);
+  if (el) el.classList.toggle("collapsed");
+}
 
-load("FR");
+function selectContinent(contKey) {
+  const cont = CONTINENTS[contKey];
+  cont.codes.forEach(code => {
+    if (state.countries.find(c => c.code === code) && !state.selectedCountries.includes(code)) {
+      state.selectedCountries.push(code);
+    }
+  });
+  renderSelector();
+}
+
+function deselectContinent(contKey) {
+  const cont = CONTINENTS[contKey];
+  state.selectedCountries = state.selectedCountries.filter(c => !cont.codes.includes(c));
+  renderSelector();
+}
+
+function selectAll() {
+  state.selectedCountries = state.countries.map(c => c.code);
+  renderSelector();
+}
+
+function clearSelection() {
+  state.selectedCountries = [];
+  renderSelector();
+}
+
+async function submitSelection() {
+  if (!state.selectedCountries.length) return alert("Sélectionne au moins un pays");
+  
+  document.getElementById("app").innerHTML = `
+    <div class="state">
+      <div class="spinner"></div>
+      <p style="font-size: 16px; margin-bottom: 12px;">Chargement de ${state.selectedCountries.length} pays…</p>
+      <p style="color: var(--muted); font-size: 13px;">Cela peut prendre 30-60 secondes pour de nombreux pays.<br>Patience, on charge en parallèle ⚡</p>
+    </div>`;
+  
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+    
+    const res = await fetch(`/api/monde-live?countries=${state.selectedCountries.join(",")}`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    
+    if (!res.ok) throw new Error(`Erreur ${res.status}`);
+    
+    const data = await res.json();
+    state.data = data;
+    state.stage = "results";
+    renderResults();
+  } catch (e) {
+    const isTimeout = e.name === "AbortError";
+    document.getElementById("app").innerHTML = `
+      <div class="state">
+        <p style="color: var(--live); font-size: 18px; margin-bottom: 12px;">❌ ${isTimeout ? 'Timeout - Trop de pays sélectionnés' : 'Erreur de chargement'}</p>
+        <p style="color: var(--muted); margin-bottom: 20px;">${isTimeout ? 'Essaye avec moins de pays (max 15-20 à la fois)' : 'Vérifie ta connexion et réessaye'}</p>
+        <button class="cancel" onclick="goBack()">← Retour à la sélection</button>
+      </div>`;
+  }
+}
+
+function renderResults() {
+  const erotica = state.data?.erotica || [];
+  const worldcup = state.data?.worldcup || [];
+  
+  let html = `
+    <button class="cancel" onclick="goBack()" style="margin-bottom: 20px;">← Retour à la sélection</button>
+    
+    <div class="summary">
+      <strong>${state.selectedCountries.length}</strong> pays | 
+      <strong>${erotica.length}</strong> films érotiques | 
+      <strong>${worldcup.length}</strong> matchs Coupe du Monde
+    </div>
+    
+    <div class="controls">
+      <button class="filter-btn ${state.filter === 'all' ? 'active' : ''}" onclick="setFilter('all')">Tous</button>
+      <button class="filter-btn ${state.filter === 'erotica' ? 'active' : ''}" onclick="setFilter('erotica')">🎬 Films Érotiques (${erotica.length})</button>
+      <button class="filter-btn ${state.filter === 'worldcup' ? 'active' : ''}" onclick="setFilter('worldcup')">⚽ Coupe du Monde (${worldcup.length})</button>
+    </div>`;
+  
+  if (state.filter === "all" || state.filter === "erotica") {
+    html += `<h2>🎬 Films Érotiques à l'Antenne</h2>
+      <p class="subtitle"><strong>${erotica.length}</strong> diffusion(s) maintenant</p>`;
+    
+    if (!erotica.length) {
+      html += `<div class="state">Aucun film érotique en ce moment</div>`;
+    } else {
+      html += `<div class="items">`;
+      erotica.forEach(p => {
+        const time = new Date(p.start).toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
+        html += `<div class="item erotica">
+          <div class="item-header">
+            <span class="item-flag">${p.flag}</span>
+            <div class="item-info">
+              <div class="item-country">${p.countryName}</div>
+              <div class="item-title">${p.title}</div>
+              <div class="item-channel">${p.channelIcon || '📺'} ${p.channel}</div>
+              <div class="item-time">${time}</div>
+              <span class="item-badge">EN DIRECT</span>
+            </div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  }
+  
+  if (state.filter === "all" || state.filter === "worldcup") {
+    html += `<h2>⚽ Coupe du Monde 2026 — EN DIRECT</h2>
+      <p class="subtitle"><strong>${worldcup.length}</strong> match(s) maintenant</p>`;
+    
+    if (!worldcup.length) {
+      html += `<div class="state">Aucun match en ce moment</div>`;
+    } else {
+      html += `<div class="items">`;
+      worldcup.forEach(p => {
+        const time = new Date(p.start).toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
+        html += `<div class="item worldcup">
+          <div class="item-header">
+            <span class="item-flag">${p.flag}</span>
+            <div class="item-info">
+              <div class="item-country">${p.countryName}</div>
+              <div class="item-title">${p.title}</div>
+              <div class="item-channel">${p.channelIcon || '📺'} ${p.channel}</div>
+              <div class="item-time">${time}</div>
+              <span class="item-badge">EN DIRECT</span>
+            </div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  }
+  
+  document.getElementById("app").innerHTML = html;
+}
+
+function setFilter(type) {
+  state.filter = type;
+  renderResults();
+}
+
+function goBack() {
+  state.stage = "select";
+  state.filter = "all";
+  renderSelector();
+}
+
+init();
 </script>
 </body>
 </html>
